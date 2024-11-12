@@ -22,7 +22,7 @@ public class Sequencer
     public ArrayList<Triad> telos;
     public int maxGameLengthSoFar, minRepNotes, maxAllowedRep;
     public Random rand;
-    public static int TET = 15;
+    public static int TET = 18;
 
     Sequencer(){
         sourceSyntagm = new Board();
@@ -103,8 +103,10 @@ public class Sequencer
         for(int i =   0;  i < 7; i++)
             System.out.println();
 
-        for(int i = 0; i < 100; i++)
+        for(int i = 0; i < 100; i++){
             getChords();
+            System.out.println(myGame);
+        }
     }
 
     private ArrayList<Board> getAllPossibleMoves(Game currentGame){
