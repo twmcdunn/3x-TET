@@ -19,7 +19,6 @@ public class Board extends ArrayList<Triad>{
 
     public boolean fitsMode(){
 
-        boolean fitsMode = false;
         ArrayList<Integer> superSet = new ArrayList<Integer>();
         for(Triad t: this)
             superSet.addAll(t.notes());
@@ -30,7 +29,7 @@ public class Board extends ArrayList<Triad>{
                 for(int m: superSet){
                     boolean isCont = false;
                     for(int c: mode){
-                        if(c == (m + (15 - propRoot)) % 15){
+                        if(c == (m + (Sequencer.TET - propRoot)) % Sequencer.TET){
                             isCont = true;
                             break;
                         }
@@ -61,7 +60,7 @@ public class Board extends ArrayList<Triad>{
             for(int m: superSet){
                 boolean isCont = false;
                 for(int c: Triad.COMPOSITE){
-                    if(c == (m + (15 - propRoot)) % 15){
+                    if(c == (m + (Sequencer.TET - propRoot)) % Sequencer.TET){
                         isCont = true;
                         break;
                     }

@@ -6,7 +6,7 @@ public class Game extends ArrayList<Board>{
     public static final boolean SHOW_GRID = true;
 
     Game(Board initialBoard){
-        grid = new int[Triad.triadDictionary.length][15];
+        grid = new int[Triad.triadDictionary.length][Sequencer.TET];
         for(Triad t: initialBoard)
             grid[t.type][t.root]++;
         add(initialBoard);
@@ -19,7 +19,7 @@ public class Game extends ArrayList<Board>{
     Game(Game g){
         for(Board b: g)
             add(new Board(b));
-        grid = new int[Triad.triadDictionary.length][15];
+        grid = new int[Triad.triadDictionary.length][Sequencer.TET];
         for(int i = 0; i < grid.length; i++)
             for(int n = 0; n < grid[i].length; n++)
                 grid[i][n] = g.grid[i][n];

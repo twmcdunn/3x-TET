@@ -22,6 +22,7 @@ public class Sequencer
     public ArrayList<Triad> telos;
     public int maxGameLengthSoFar, minRepNotes, maxAllowedRep;
     public Random rand;
+    public static int TET = 15;
 
     Sequencer(){
         sourceSyntagm = new Board();
@@ -77,7 +78,7 @@ public class Sequencer
         int mdist = 0;
         for(int a = 0; a < Triad.triadDictionary.length; a++)
             for(int b =  0; b < Triad.triadDictionary.length; b++)
-                for(int d = 0; d < 15; d++){
+                for(int d = 0; d < TET; d++){
 
                     Board brd = new Board();
                     brd.add(new Triad(a,0));
@@ -197,74 +198,6 @@ public class Sequencer
         return chords;
     }
 
-    private Game findAGoodGame(Game incompleteGame){
-        //System.out.println("CURRENT LENGTH = " + incompleteGame.size());
-        if(false && (incompleteGame.minSyntacticDistance < globalMax
-            || (incompleteGame.aveSyntacticDistance < tollerableAverage && incompleteGame.size() > 10)))
-            return null;
-        if(false && aveRepNotes(incompleteGame) > minAveRep){
-            return null;
-        }
-        if(incompleteGame.size() == GAME_LENGTH){
-            minRepNotes = Math.min(minRepNotes, repeatedNotes(incompleteGame));
-            minAveRep = Math.min(minAveRep, aveRepNotes(incompleteGame));
-            //System.out.println("REP NOTES: " + minRepNotes);
-        }
-
-        Game game = null;
-        ArrayList<Board> allPossibleMoves = getAllPossibleMoves(incompleteGame);
-        if(allPossibleMoves == null){
-            if(incompleteGame.size() == GAME_LENGTH && incompleteGame.aveSyntacticDistance >= globalMaxAverage){
-                // && incompleteGame.aveSyntacticDistance >= globalMaxAverage){
-                // this should be guarenteeed by method get optimal moves:
-                //&& incompleteGame.minSyntacticDistance > globalMax
-                globalMax = incompleteGame.minSyntacticDistance;
-                globalMaxAverage = incompleteGame.aveSyntacticDistance;
-                tollerableAverage = (globalMaxAverage * 0.5) + (tollerableAverage * 0.5);
-                //tollerableAverage = globalMaxAverage;
-                game = incompleteGame;
-                System.out.println("BETTER GAME FOUND:\n" + game);
-                //game.printGame();//common tones at a glance
-                System.out.println("GLOBAL MAX = " + globalMax);
-                System.out.println("GLOBAL MAX AVERAGE = " + globalMaxAverage);
-                System.out.println("TOLLERABLE AVERAGE = " + tollerableAverage);
-                //myGame = game;
-                return game;
-            }
-            // System.out.println("DEADEND");
-            if(incompleteGame.size() > maxGameLengthSoFar){
-                System.out.println("LONGEST GAME: " + incompleteGame.size());
-                System.out.println(incompleteGame);
-                maxGameLengthSoFar = incompleteGame.size();
-            }
-            return null;
-        }
-
-        int best = 0;
-        for(Board move: allPossibleMoves){
-            best = Math.max(move.getMinSyntacticDistance(), best);
-        }
-        int num = 0;
-        for(Board move: allPossibleMoves){
-            if(move.getMinSyntacticDistance() == best)
-                num++;
-        }
-        System.out.println("BEST DISTANCE: " + best + " NUM OF OPTIONS: " +  num);
-        System.out.println(incompleteGame);
-        for(Board move: allPossibleMoves){
-            if(numOfRepNotes(move) > maxAllowedRep)//false && !lacksRepNotes(move))//true && hasCommonTone(incompleteGame.get(incompleteGame.size() - 1),move))
-                continue;
-            Game gameToMove = new Game(incompleteGame);
-            gameToMove.makeMove(move);
-            Game completeGame = findAGoodGame(gameToMove); // depth first search
-            if(completeGame != null){
-                game = completeGame;
-            }
-        }
-        //System.out.println(completeGames.size());
-        return game;
-    }
-
     public static double aveRepNotes(Game g){
         return repeatedNotes(g) / (double)g.size();
     }
@@ -315,7 +248,7 @@ public class Sequencer
             Triad t2 = chords.get(i + 1);
             for(int m1: Triad.triadDictionary[t1.type]){
                 for(int m2: Triad.triadDictionary[t2.type]){
-                    if((m1 + t1.root) % 15 == (m2 + t2.root) % 15)
+                    if((m1 + t1.root) % TET == (m2 + t2.root) % TET)
                         return true;
                 }
             }
