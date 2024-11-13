@@ -18,12 +18,6 @@ public class Piece {
 
     // c4 = 75 ss
 
-    /*
-     * Modes of limited trans in 21 TET
-     * 0 1 5 7 8 12 14 15 19 Contains [0,5,12] [7,14,19]
-     * 0 1 3 7 8 10 14 15 17 Contains [3,8,15] [10,17,1]
-     */
-
     public Piece() {
         /*
          * WaveWriter ww = new WaveWriter("15TET");
@@ -44,11 +38,42 @@ public class Piece {
          * true));
          * ww.render();
          */
-        parsimoniousTexture1();
+        //parsimoniousTexture1();
+        testChordProgression();
     }
 
     public static void main(String[] args) {
         new Piece();
+    }
+
+    /*
+     * Modes of limited trans in 21 TET
+     * 0 1 5 7 8 12 14 15 19 Contains [0,5,12] [7,14,19]
+     * 0 1 3 7 8 10 14 15 17 Contains [3,8,15] [10,17,1]
+     */
+
+    public void testChordProgression() {
+        int[][] chords = new int[][] { 
+            { 0, 5, 12, 8,//15
+        }, { 7, 14, 19, 1,//1
+        }, { 3, 8, 15, 0 
+        }, { 10, 17, 1, 7//14 and 7 are both ok
+        } };
+
+        WaveWriter ww = new WaveWriter("chordProg");
+        Synth synth = new SampleSynth(0);
+
+        double time = 0;
+
+        for (int n = 0; n < chords.length; n++) {
+            for (int i = 0; i < chords[n].length; i++) {
+                chords[n][i] = closestOct(106,chords[n][i]);
+                synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] /(double) Sequencer.TET), 0.01, new double[]{1});
+            }
+            time += 3;
+        }
+        ww.render();
+
     }
 
     public void parsimoniousTexture() {
@@ -195,9 +220,9 @@ public class Piece {
     }
 
     public int closestOct(int target, int pc) {
-        int oct = (int) Math.rint((target - pc) / 15.0);
+        int oct = (int) Math.rint((target - pc) / (double) Sequencer.TET);
 
-        return oct * 15 + pc;
+        return oct * Sequencer.TET + pc;
     }
 
     public void piece2(ArrayList<Envelope> envs) {
