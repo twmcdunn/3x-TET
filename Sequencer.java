@@ -22,7 +22,7 @@ public class Sequencer
     public ArrayList<Triad> telos;
     public int maxGameLengthSoFar, minRepNotes, maxAllowedRep;
     public Random rand;
-    public static int TET = 18;
+    public static int TET = 15;
 
     Sequencer(){
         sourceSyntagm = new Board();

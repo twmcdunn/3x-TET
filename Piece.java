@@ -34,6 +34,10 @@ public class Piece
         parsimoniousTexture1();
     }
 
+    public static void main(String[] args){
+        new Piece();
+    }
+
     public void parsimoniousTexture(){
         Sequencer seq = new Sequencer();
         int[][] chords  = new int[2][4];
