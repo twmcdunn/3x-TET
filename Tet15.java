@@ -8,9 +8,22 @@ import java.util.ArrayList;
 public class Tet15
 {
     public static final String[] NOTE_NAMES = new String[]{"C ", "C#", "D ", "Eb", "E ", "F ", "F#", "G ", "Ab", "A ", "Bb", "B "};
+    public static int TET = 21;
+    public static void main(String[] args){
+        printLimTrans(7);
+        //calculateScale();
+        System.out.println(700/57.14285714);
+    }
+    
+/*
+ * Modes of limited trans in 21 TET
+ * 0 1 5 7 8 12 14 15 19   Contains [0,5,12] [7,14,19]
+ * 0 1 3 7 8 10 14 15 17  Contains [3,8,15]  [10,17,1]
+ */
+
     public static void calculateScale(){
-        for(int i = 0; i < 15; i++){
-            double freq = 440 * Math.pow(2, i/15.0);
+        for(int i = 0; i < TET; i++){
+            double freq = 440 * Math.pow(2, i/(double)TET);
             double hs = 12 * (Math.log(freq / 440.0) / Math.log(2));
             double quantizedHs = Math.rint(hs);
             double residual = hs - quantizedHs;
@@ -32,7 +45,7 @@ public class Tet15
     public static void printLimTrans(int lim){
         ArrayList<ArrayList<Integer>> scales = limitedTransScales(new ArrayList<Integer>(), lim);
         for(ArrayList<Integer> scale: scales){
-            for(int trans = 0; trans < (int)(15 / lim); trans++){
+            for(int trans = 0; trans < (int)(TET / lim); trans++){
                 int note = 0;
                 System.out.print((note + trans * lim) + " ");
                 for(Integer hs: scale){
