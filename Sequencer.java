@@ -23,6 +23,10 @@ public class Sequencer
     public int maxGameLengthSoFar, minRepNotes, maxAllowedRep;
     public Random rand;
     public int TET = 15;//21;
+    public ArrayList<int[][]> transformationMatrix;
+    public int[][] triadDictionary = {
+        { 0, 5, 9, 12 }, { 0, 4, 9, 12 }, { 0, 5, 8, 9 }, { 0, 5, 9, 13 }, { 0, 3, 5, 9 }, { 0, 4, 9, 13 }
+};
 
     Sequencer(){
         sourceSyntagm = new Board(this);
@@ -76,14 +80,14 @@ public class Sequencer
 
     public static void testTraids(Sequencer s){
         int mdist = 0;
-        for(int a = 0; a < Triad.triadDictionary.length; a++)
-            for(int b =  0; b < Triad.triadDictionary.length; b++)
+        for(int a = 0; a < s.triadDictionary.length; a++)
+            for(int b =  0; b < s.triadDictionary.length; b++)
                 for(int d = 0; d < s.TET; d++){
 
                     Board brd = new Board(s);
                     brd.add(new Triad(a,0,s));
                     brd.add(new Triad(b,d,s));
-                    if(true && Triad.triadDictionary[a].length != Triad.triadDictionary[b].length)
+                    if(true && s.triadDictionary[a].length != s.triadDictionary[b].length)
                         continue;
                     if(brd.getMinSyntacticDistance() >= mdist){
                         mdist = brd.getMinSyntacticDistance();
@@ -248,8 +252,8 @@ public class Sequencer
         for(int i = 0; i < chords.size() - 1; i++){
             Triad t1 = chords.get(i);
             Triad t2 = chords.get(i + 1);
-            for(int m1: Triad.triadDictionary[t1.type]){
-                for(int m2: Triad.triadDictionary[t2.type]){
+            for(int m1: triadDictionary[t1.type]){
+                for(int m2: triadDictionary[t2.type]){
                     if((m1 + t1.root) % TET == (m2 + t2.root) % TET)
                         return true;
                 }

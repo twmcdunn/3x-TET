@@ -9,13 +9,9 @@ import java.util.Arrays;
  */
 public class Triad// implements Cloneable
 {
-    public int[][] transformationGroup, directedTransformationGroup; // format: [Type][DeltaRoot]
+    public int[][] transformationGroup; // format: [Type][DeltaRoot]
     public int type, root;
     public static final int searchLimit = 100;
-
-    public static int[][] triadDictionary = {
-            { 0, 5, 9, 12 }, { 0, 4, 9, 12 }, { 0, 5, 8, 9 }, { 0, 5, 9, 13 }, { 0, 3, 5, 9 }, { 0, 4, 9, 13 }
-    };
 
     public static boolean ascending;
     private final String[] NOTE_NAMES = { " C", "C#", "D ", "D ", "Eb", "E ", "F ", "F#", "F#", "G ", "Ab", "A ", "Bb",
@@ -29,23 +25,22 @@ public class Triad// implements Cloneable
 
     public static final int[] COMPOSITE = new int[] { 0, 4, 5, 6, 7, 11 };
     public ArrayList<Triad> myNuclearFamily;
-    public static ArrayList<int[][]> transformationMatrix, directedTransformationMatrix;
+    
     public Sequencer s;
 
     public Triad(int tp, int rt, Sequencer seq) {
         s = seq;
         type = tp;
         root = rt;
-        if (transformationMatrix == null)
+        if (seq.transformationMatrix == null)
             initializeTransformationMatrix();
-        transformationGroup = transformationMatrix.get(type);
-        directedTransformationGroup = directedTransformationMatrix.get(type);
+        transformationGroup = seq.transformationMatrix.get(type);
         myNuclearFamily = null;
     }
 
     public ArrayList<Integer> notes() {
         ArrayList<Integer> notes = new ArrayList<Integer>();
-        for (int n : triadDictionary[type]) {
+        for (int n : s.triadDictionary[type]) {
             notes.add((n + root) % s.TET);
         }
         return notes;
@@ -55,8 +50,7 @@ public class Triad// implements Cloneable
         type = t.type;
         root = t.root;
         s = t.s;
-        transformationGroup = transformationMatrix.get(type);
-        directedTransformationGroup = directedTransformationMatrix.get(type);
+        transformationGroup = s.transformationMatrix.get(type);
         myNuclearFamily = null;
     }
 
@@ -64,8 +58,8 @@ public class Triad// implements Cloneable
         class Initializer {
 
             int[] getTransformation(int[] pitchClassSet) {
-                for (int a = 0; a < triadDictionary.length; a++) {
-                    int[] triad = triadDictionary[a];
+                for (int a = 0; a < s.triadDictionary.length; a++) {
+                    int[] triad = s.triadDictionary[a];
                     if (triad.length != pitchClassSet.length)
                         continue;
                     for (int i = 0; i < pitchClassSet.length; i++) {
@@ -213,25 +207,18 @@ public class Triad// implements Cloneable
 
             ArrayList<int[][]> generate3DTransformationMatrix() {
                 ArrayList<int[][]> inchoateMatrix = new ArrayList<int[][]>();
-                for (int[] triad : triadDictionary)
+                for (int[] triad : s.triadDictionary)
                     inchoateMatrix.add(getTransformationGroup(triad, false));
                 return inchoateMatrix;
             }
 
-            ArrayList<int[][]> generate3DDirectedTransformationMatrix() {
-                ArrayList<int[][]> inchoateMatrix = new ArrayList<int[][]>();
-                for (int[] triad : triadDictionary)
-                    inchoateMatrix.add(getTransformationGroup(triad, true));
-                return inchoateMatrix;
-            }
         }
         Initializer init = new Initializer();
-        transformationMatrix = init.generate3DTransformationMatrix();
-        directedTransformationMatrix = init.generate3DDirectedTransformationMatrix();
+        s.transformationMatrix = init.generate3DTransformationMatrix();
         displayTransformationMatrix();
     }
 
-    public static void displayTransformationMatrix() {
+    public void displayTransformationMatrix() {
         System.out.println();
         System.out.println("PRINTING TRANSFORMATION MATRIX FOR THIS HARMONIC SPACE...");// transformationMatrix
         System.out.println("FORMAT: 'OriginalType:");// transformationMatrix
@@ -239,9 +226,9 @@ public class Triad// implements Cloneable
         System.out.println();
         System.out.println();
         System.out.println("MATRIX {");
-        for (int i = 0; i < transformationMatrix.size(); i++) {
+        for (int i = 0; i < s.transformationMatrix.size(); i++) {
             System.out.println(i + ":");
-            for (int[] transformation : transformationMatrix.get(i))
+            for (int[] transformation : s.transformationMatrix.get(i))
                 System.out.println("        [" + transformation[0] + "][" + transformation[1] + "]");
         }
         System.out.println("} END MATRIX");
@@ -250,7 +237,7 @@ public class Triad// implements Cloneable
     public int findShortestPath(Triad relative) {
         if (equals(relative))
             return 0;
-        Triad[][] grid = new Triad[triadDictionary.length][s.TET];
+        Triad[][] grid = new Triad[s.triadDictionary.length][s.TET];
         grid[type][root] = this;
         int distance = 1;
         for (distance = 1; !search(relative, grid) && distance < searchLimit; distance++)
@@ -290,11 +277,6 @@ public class Triad// implements Cloneable
         return new Triad(transformation[0], (root + transformation[1]) % s.TET,s);
     }
 
-    public Triad generateDirectedTransformed(int i) {
-        int[] transformation = transformationGroup[i];// directedTransformationGroup
-        return new Triad(transformation[0], (root + transformation[1]) % s.TET,s);
-    }
-
     public void printOutTransformations() {
         for (int i = 0; i < transformationGroup.length; i++)
             System.out.println(generateTransformed(i));
@@ -309,8 +291,8 @@ public class Triad// implements Cloneable
     @Override
     public String toString() {
         String myName = "[";
-        for (int i = 0; i < triadDictionary[type].length; i++)
-            myName += ((root + triadDictionary[type][i]) % s.TET) + ", ";
+        for (int i = 0; i < s.triadDictionary[type].length; i++)
+            myName += ((root + s.triadDictionary[type][i]) % s.TET) + ", ";
         myName = myName.substring(0, myName.length() - 2) + "] (" + type + "," + root + ")";
         return myName;
     }
@@ -326,8 +308,8 @@ public class Triad// implements Cloneable
 
         String seq = "[";
         boolean[] notes = new boolean[s.TET];
-        for (int i = 0; i < triadDictionary[type].length; i++) {
-            notes[(root + triadDictionary[type][i]) % s.TET] = true;
+        for (int i = 0; i < s.triadDictionary[type].length; i++) {
+            notes[(root + s.triadDictionary[type][i]) % s.TET] = true;
         }
         for (int i = 0; i < s.TET; i++) {
             if (notes[i])
