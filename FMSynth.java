@@ -10,7 +10,7 @@ public class FMSynth implements Synth
     public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan){
         double carrier = freq;
         double modulator = freq;
-        double dur = 3;
+        double dur = 6;
         int durFrames = (int)Math.rint(dur * WaveWriter.SAMPLE_RATE);
         int startFrame = (int)Math.rint(time * WaveWriter.SAMPLE_RATE);
 
@@ -23,7 +23,7 @@ public class FMSynth implements Synth
             if(durFrames - i < 100){
                 amp *= (durFrames - i) / 100.0;
             }
-            double frame = amp * Math.sin(2 * Math.PI * carrier * t - Math.cos(2 * Math.PI * modulator * t));
+            double frame = amp * Math.sin(2 * Math.PI * carrier * t - amp * Math.cos(2 * Math.PI * modulator * t));
             for(int chan = 0; chan < pan.length; chan++)
                 frames[chan][i + startFrame] += pan[chan] * frame;
         }

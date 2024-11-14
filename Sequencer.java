@@ -1,9 +1,4 @@
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
-import java.util.Comparator;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Random;
 /**
  * Write a description of class Game here.
@@ -22,13 +17,29 @@ public class Sequencer
     public ArrayList<Triad> telos;
     public int maxGameLengthSoFar, minRepNotes, maxAllowedRep;
     public Random rand;
-    public int TET = 15;//21;
+    public int TET;//21;
     public ArrayList<int[][]> transformationMatrix;
-    public int[][] triadDictionary = {
-        { 0, 5, 9, 12 }, { 0, 4, 9, 12 }, { 0, 5, 8, 9 }, { 0, 5, 9, 13 }, { 0, 3, 5, 9 }, { 0, 4, 9, 13 }
-};
+    public int[][] triadDictionary;
+    public int[][] modes;
 
-    Sequencer(){
+    Sequencer(int type){
+        switch(type){
+            case 0:
+            TET = 15;
+            triadDictionary = new int[][]{
+                { 0, 5, 9, 12 }, { 0, 4, 9, 12 }, { 0, 5, 8, 9 }, { 0, 5, 9, 13 }, { 0, 3, 5, 9 }, { 0, 4, 9, 13 }
+        };
+        modes = new int[][]{{0,1,2,5,6,7,10,11,12},{0,1,3,5,6,8,10,11,13}};
+            break;
+            case 1:
+            TET = 21;
+            triadDictionary = new int[][]{
+            {0,3,7,12,15},{0,5,8,12,17}, {0,5,9,12,18}, {0,4,7,12,16} 
+            };
+            modes = new int[][]{{0, 1, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19}};
+            break;
+        }
+
         sourceSyntagm = new Board(this);
         initializeVariables();
         initializeHardCodedSource();
@@ -38,7 +49,7 @@ public class Sequencer
     }
 
     public static void main(String[] args){
-        new Sequencer().playGames();
+        new Sequencer(0).playGames();
     }
 
     public void initializeVariables(){

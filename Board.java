@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 public class Board extends ArrayList<Triad>{
     boolean isComposite, compTested;
-    int[][] modes = {{0,1,2,5,6,7,10,11,12},{0,1,3,5,6,8,10,11,13}};
+    
     public Sequencer s;
 
     Board(Sequencer seq){ s = seq;}
@@ -24,7 +24,7 @@ public class Board extends ArrayList<Triad>{
         ArrayList<Integer> superSet = new ArrayList<Integer>();
         for(Triad t: this)
             superSet.addAll(t.notes());
-        for(int[] mode:modes)
+        for(int[] mode:s.modes)
             for(int i = 0; i < superSet.size(); i++){
                 int propRoot = superSet.get(i);
                 boolean isC = true;

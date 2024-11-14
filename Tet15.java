@@ -13,6 +13,23 @@ public class Tet15
         printLimTrans(7);
         //calculateScale();
         System.out.println(700/57.14285714);
+        maximumlyEven();
+    }
+
+    public static void maximumlyEven(){
+        double a = 0;
+        while(a < 21){
+            System.out.print((int)a + " ");
+            a += 21 / 12.0;
+        }
+
+        System.out.println();
+
+        a = 0;
+        while(a < 12){
+            System.out.print((int)a + " ");
+            a += 12 / 5.0;
+        }
     }
     
 /*

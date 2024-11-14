@@ -51,24 +51,51 @@ public class Piece {
      * 0 1 5 7 8 12 14 15 19 Contains [0,5,12] [7,14,19]
      * 0 1 3 7 8 10 14 15 17 Contains [3,8,15] [10,17,1]
      */
+    /*
+ * Modes of limited trans in 21 TET
+ * a: 0 1 5 7 8 12 14 15 19   Contains [0,5,12] [7,14,19]
+ * b: 0 1 3 7 8 10 14 15 17  Contains [3,8,15]  [10,17,1]
+ * 
+ * 
+ * a':0 1 2 5 7 8 9 12 14 15 16 19
+ * 
+ * b':0 1 3 4 7 8 10 11 14 15 17 18 
+ * b''0 1 2 3 7 8 9 10 14 15 16 17
+ * 
+ * 
+ * a+b:0 1 3 5 7 8 10 12 14 15 17 19 (maximumly even)
+ *     contains maximumly even: [0,3,7,12,15] [14,19,1,5,10]
+ *                               0 2 4 7 9      0 3  5 7 10
+ *     [3,8,12,15,0]   [10,14,17,1,5]
+ *      0 3 5 7 10      0 2 4 7 9
+ */
 
     public void testChordProgression() {
         int[][] chords = new int[][] { 
-            { 0, 5, 12, 8,//15
+             
+            { 0, 5, 12, 8,// 2
         }, { 7, 14, 19, 1,//1
         }, { 3, 8, 15, 0 
         }, { 10, 17, 1, 7//14 and 7 are both ok
-        } };
+        } 
+    };
+
+    //this is a good 21 TET progression
+    //it's based on 'second order' maximal eveness
+    //it may be that this princple appeals to me more
+    //than limited transpositions
+    chords = new int[][] {{0,3,7,12,15},{14,19,1,5,10}, {3,8,12,15,0}, {10,14,17,1,5} };
 
         WaveWriter ww = new WaveWriter("chordProg");
-        Synth synth = new SampleSynth(0);
+        Synth synth = new SampleSynth(1);
 
         double time = 0;
 
         for (int n = 0; n < chords.length; n++) {
             for (int i = 0; i < chords[n].length; i++) {
-                chords[n][i] = closestOct(106,chords[n][i],21);
-                synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] /(double) 21), 0.01, new double[]{1});
+                chords[n][i] = closestOct(106 - 21,chords[n][i],21);
+                synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] /(double) 21), 0.1, new double[]{1});
+                time += 0.1;
             }
             time += 3;
         }
@@ -77,7 +104,7 @@ public class Piece {
     }
 
     public void parsimoniousTexture() {
-        Sequencer seq = new Sequencer();
+        Sequencer seq = new Sequencer(0);
         int[][] chords = new int[2][4];
         for (int i = 0; i < 2; i++) {
             ArrayList<Integer> notes = seq.myGame.getLastBoard().get(i).notes();
@@ -131,10 +158,10 @@ public class Piece {
     }
 
     public void parsimoniousTexture1() {
-        Sequencer seq = new Sequencer();
+        Sequencer seq = new Sequencer(1);
 
         Random rand = new Random(123);
-        int[][] c = populateChords(seq, rand, 90);
+        int[][] c = populateChords(seq, rand, 6 * seq.TET);
         ArrayList<int[][]> strata = new ArrayList<int[][]>();
         strata.add(c);
 
@@ -158,7 +185,7 @@ public class Piece {
             time += 8 * 1 / 10.0;
             if (octs.size() > 0 && rand.nextDouble() > 0.9) {
                 int ind = (int) (rand.nextDouble() * octs.size());
-                strata.add(populateChords(seq, rand, 60 + octs.get(ind) * 15));
+                strata.add(populateChords(seq, rand, 4 * seq.TET + octs.get(ind) * seq.TET));
                 octs.remove(ind);
             }
         }
@@ -168,8 +195,8 @@ public class Piece {
     }
 
     public int[][] populateChords(Sequencer seq, Random rand, int target) {
-        int[][] chords = new int[2][4];
-        for (int i = 0; i < 2; i++) {
+        int[][] chords = new int[seq.myGame.getLastBoard().size()][seq.myGame.getLastBoard().get(0).notes().size()];
+        for (int i = 0; i < chords.length; i++) {
             ArrayList<Integer> notes = seq.myGame.getLastBoard().get(i).notes();
             for (int n = 0; n < chords[i].length; n++) {
                 int ind = (int) (rand.nextDouble() * notes.size());
@@ -184,19 +211,19 @@ public class Piece {
             double[] pan, int tet) {
         for (int n = 0; n < chords.length; n++)
             for (int i = 0; i < chords[n].length; i++) {
-                synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] / 15.0), 0.01, pan);
+                synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] / (double)tet), 0.01, pan);
                 time += 1 / 10.0;
             }
 
         for (int n = 0; n < chords.length; n++) {
-            boolean[] notesAreContained = new boolean[4];
+            boolean[] notesAreContained = new boolean[chords[n].length];
             int chordReplaceIndex = -1;
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < chords[n].length ; i++)
                 notesAreContained[i] = false;
             for (int i = 0; i < chords[n].length; i++) {
                 boolean chordNoteIsContained = false;
                 for (int j = 0; j < notes[n].length; j++) {
-                    if (notes[n][j] == chords[n][i] % 15) {
+                    if (notes[n][j] == chords[n][i] % tet) {
                         chordNoteIsContained = true;
                         notesAreContained[j] = true;
                         break;
