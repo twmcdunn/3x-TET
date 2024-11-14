@@ -22,14 +22,14 @@ public class Sequencer
     public ArrayList<Triad> telos;
     public int maxGameLengthSoFar, minRepNotes, maxAllowedRep;
     public Random rand;
-    public static int TET = 21;
+    public int TET = 15;//21;
 
     Sequencer(){
-        sourceSyntagm = new Board();
+        sourceSyntagm = new Board(this);
         initializeVariables();
         initializeHardCodedSource();
         rand = new Random(123);
-        Game sourceGame = new Game(sourceSyntagm);
+        Game sourceGame = new Game(sourceSyntagm, this);
         myGame = sourceGame;
     }
 
@@ -53,20 +53,20 @@ public class Sequencer
     }
 
     public void addTriadToSource(int type, int root){
-        sourceSyntagm.add(new Triad(type, root));
+        sourceSyntagm.add(new Triad(type, root, this));
     }
 
     public void initializeHardCodedSource(){
         //int[][] hardCodedSource = new int[][]{{0,0},{1,2},{3,1}};
         int[][] hardCodedSource = new int[][]{{0,6},{1,1}};//,{5,2}};
         for(int i = 0; i < hardCodedSource.length; i++)
-            sourceSyntagm.add(new Triad(hardCodedSource[i][0], hardCodedSource[i][1]));
+            sourceSyntagm.add(new Triad(hardCodedSource[i][0], hardCodedSource[i][1],this));
 
         int[][] hardCodedTelos = new int[][]{{0,10},{1,8}};
         //int[][] hardCodedTelos = new int[][]{{1,8}, {3,10}};
         telos = new ArrayList<Triad>();
         for(int i = 0; i < hardCodedTelos.length; i++)
-            telos.add(new Triad(hardCodedTelos[i][0], hardCodedTelos[i][1]));
+            telos.add(new Triad(hardCodedTelos[i][0], hardCodedTelos[i][1],this));
 
         telos = null;
         System.out.println("Source: " + sourceSyntagm);
@@ -74,15 +74,15 @@ public class Sequencer
         System.out.println("minDist = " + sourceSyntagm.getMinSyntacticDistance());
     }
 
-    public static void testTraids(){
+    public static void testTraids(Sequencer s){
         int mdist = 0;
         for(int a = 0; a < Triad.triadDictionary.length; a++)
             for(int b =  0; b < Triad.triadDictionary.length; b++)
-                for(int d = 0; d < TET; d++){
+                for(int d = 0; d < s.TET; d++){
 
-                    Board brd = new Board();
-                    brd.add(new Triad(a,0));
-                    brd.add(new Triad(b,d));
+                    Board brd = new Board(s);
+                    brd.add(new Triad(a,0,s));
+                    brd.add(new Triad(b,d,s));
                     if(true && Triad.triadDictionary[a].length != Triad.triadDictionary[b].length)
                         continue;
                     if(brd.getMinSyntacticDistance() >= mdist){
@@ -92,9 +92,9 @@ public class Sequencer
 
                 }
 
-        Board brd = new Board();
-        brd.add(new Triad(3,0));
-        brd.add(new Triad(0,6));
+        Board brd = new Board(s);
+        brd.add(new Triad(3,0,s));
+        brd.add(new Triad(0,6,s));
         System.out.println(brd);
 
     }
@@ -111,7 +111,7 @@ public class Sequencer
 
     private ArrayList<Board> getAllPossibleMoves(Game currentGame){
         ArrayList<Board> incompleteBoards = new ArrayList<Board>();
-        incompleteBoards.add(new Board());
+        incompleteBoards.add(new Board(this));
         ArrayList<Board> completeBoards = new ArrayList<Board>();
         Board lastBoard = currentGame.getLastBoard();
         for(Triad t: lastBoard){
@@ -149,7 +149,7 @@ public class Sequencer
         //chordPopulation (number of times chords in new boards have already occured in the game
         int bestChordPop = Integer.MAX_VALUE;
         for(Board move: allPossibleMoves){
-            Game game = new Game(myGame);
+            Game game = new Game(myGame,this);
             game.makeMove(move);
             allPossibleGames.add(game);
 

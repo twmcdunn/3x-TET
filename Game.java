@@ -5,8 +5,8 @@ public class Game extends ArrayList<Board>{
     double aveSyntacticDistance, aveParadigmaticDistance;
     public static final boolean SHOW_GRID = true;
 
-    Game(Board initialBoard){
-        grid = new int[Triad.triadDictionary.length][Sequencer.TET];
+    Game(Board initialBoard, Sequencer s){
+        grid = new int[Triad.triadDictionary.length][s.TET];
         for(Triad t: initialBoard)
             grid[t.type][t.root]++;
         add(initialBoard);
@@ -16,10 +16,10 @@ public class Game extends ArrayList<Board>{
         aveParadigmaticDistance = 0;
     }
 
-    Game(Game g){
+    Game(Game g, Sequencer s){
         for(Board b: g)
             add(new Board(b));
-        grid = new int[Triad.triadDictionary.length][Sequencer.TET];
+        grid = new int[Triad.triadDictionary.length][s.TET];
         for(int i = 0; i < grid.length; i++)
             for(int n = 0; n < grid[i].length; n++)
                 grid[i][n] = g.grid[i][n];

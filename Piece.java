@@ -38,8 +38,8 @@ public class Piece {
          * true));
          * ww.render();
          */
-        //parsimoniousTexture1();
-        testChordProgression();
+        parsimoniousTexture1();
+        //testChordProgression();
     }
 
     public static void main(String[] args) {
@@ -67,8 +67,8 @@ public class Piece {
 
         for (int n = 0; n < chords.length; n++) {
             for (int i = 0; i < chords[n].length; i++) {
-                chords[n][i] = closestOct(106,chords[n][i]);
-                synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] /(double) Sequencer.TET), 0.01, new double[]{1});
+                chords[n][i] = closestOct(106,chords[n][i],21);
+                synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] /(double) 21), 0.01, new double[]{1});
             }
             time += 3;
         }
@@ -82,7 +82,7 @@ public class Piece {
         for (int i = 0; i < 2; i++) {
             ArrayList<Integer> notes = seq.myGame.getLastBoard().get(i).notes();
             for (int n = 0; n < notes.size(); n++)
-                chords[i][n] = closestOct(90, notes.get(n));
+                chords[i][n] = closestOct(90, notes.get(n),seq.TET);
         }
         double time = 0;
         WaveWriter ww = new WaveWriter("parsi");
@@ -119,7 +119,7 @@ public class Piece {
                     continue;// why would the chord be identical?
                 for (int j = 0; j < notesAreContained.length; j++) {
                     if (!notesAreContained[j]) {
-                        chords[n][chordReplaceIndex] = closestOct(chords[n][chordReplaceIndex], notes[n][j]);
+                        chords[n][chordReplaceIndex] = closestOct(chords[n][chordReplaceIndex], notes[n][j],seq.TET);
                         break;
                     }
                 }
@@ -152,7 +152,7 @@ public class Piece {
             int[][] notes = seq.getChords();
             int sNum = 0;
             for (int[][] chords : strata) {
-                realizeChords(chords, notes, time, synths[sNum % 2], ww, rand, pan);
+                realizeChords(chords, notes, time, synths[sNum % 2], ww, rand, pan, seq.TET);
                 sNum++;
             }
             time += 8 * 1 / 10.0;
@@ -173,7 +173,7 @@ public class Piece {
             ArrayList<Integer> notes = seq.myGame.getLastBoard().get(i).notes();
             for (int n = 0; n < chords[i].length; n++) {
                 int ind = (int) (rand.nextDouble() * notes.size());
-                chords[i][n] = closestOct(target, notes.get(ind));
+                chords[i][n] = closestOct(target, notes.get(ind),seq.TET);
                 notes.remove(ind);
             }
         }
@@ -181,7 +181,7 @@ public class Piece {
     }
 
     public void realizeChords(int[][] chords, int[][] notes, double time, Synth synth, WaveWriter ww, Random rand,
-            double[] pan) {
+            double[] pan, int tet) {
         for (int n = 0; n < chords.length; n++)
             for (int i = 0; i < chords[n].length; i++) {
                 synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] / 15.0), 0.01, pan);
@@ -212,17 +212,17 @@ public class Piece {
                 continue;// why would the chord be identical?
             for (int j = 0; j < notesAreContained.length; j++) {
                 if (!notesAreContained[j]) {
-                    chords[n][chordReplaceIndex] = closestOct(chords[n][chordReplaceIndex], notes[n][j]);
+                    chords[n][chordReplaceIndex] = closestOct(chords[n][chordReplaceIndex], notes[n][j],tet);
                     break;
                 }
             }
         }
     }
 
-    public int closestOct(int target, int pc) {
-        int oct = (int) Math.rint((target - pc) / (double) Sequencer.TET);
+    public int closestOct(int target, int pc, int tet) {
+        int oct = (int) Math.rint((target - pc) / (double) tet);
 
-        return oct * Sequencer.TET + pc;
+        return oct * tet + pc;
     }
 
     public void piece2(ArrayList<Envelope> envs) {

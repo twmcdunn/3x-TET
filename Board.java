@@ -2,12 +2,14 @@ import java.util.ArrayList;
 public class Board extends ArrayList<Triad>{
     boolean isComposite, compTested;
     int[][] modes = {{0,1,2,5,6,7,10,11,12},{0,1,3,5,6,8,10,11,13}};
+    public Sequencer s;
 
-    Board(){}
+    Board(Sequencer seq){ s = seq;}
 
     Board(Board b){
         for(Triad t: b)
             add(new Triad(t));
+            s = b.s;
     }
 
     public boolean contains(Triad t){
@@ -29,7 +31,7 @@ public class Board extends ArrayList<Triad>{
                 for(int m: superSet){
                     boolean isCont = false;
                     for(int c: mode){
-                        if(c == (m + (Sequencer.TET - propRoot)) % Sequencer.TET){
+                        if(c == (m + (s.TET - propRoot)) % s.TET){
                             isCont = true;
                             break;
                         }
@@ -60,7 +62,7 @@ public class Board extends ArrayList<Triad>{
             for(int m: superSet){
                 boolean isCont = false;
                 for(int c: Triad.COMPOSITE){
-                    if(c == (m + (Sequencer.TET - propRoot)) % Sequencer.TET){
+                    if(c == (m + (s.TET - propRoot)) % s.TET){
                         isCont = true;
                         break;
                     }

@@ -30,8 +30,10 @@ public class Triad// implements Cloneable
     public static final int[] COMPOSITE = new int[] { 0, 4, 5, 6, 7, 11 };
     public ArrayList<Triad> myNuclearFamily;
     public static ArrayList<int[][]> transformationMatrix, directedTransformationMatrix;
+    public Sequencer s;
 
-    public Triad(int tp, int rt) {
+    public Triad(int tp, int rt, Sequencer seq) {
+        s = seq;
         type = tp;
         root = rt;
         if (transformationMatrix == null)
@@ -44,7 +46,7 @@ public class Triad// implements Cloneable
     public ArrayList<Integer> notes() {
         ArrayList<Integer> notes = new ArrayList<Integer>();
         for (int n : triadDictionary[type]) {
-            notes.add((n + root) % Sequencer.TET);
+            notes.add((n + root) % s.TET);
         }
         return notes;
     }
@@ -52,13 +54,15 @@ public class Triad// implements Cloneable
     public Triad(Triad t) {
         type = t.type;
         root = t.root;
+        s = t.s;
         transformationGroup = transformationMatrix.get(type);
         directedTransformationGroup = directedTransformationMatrix.get(type);
         myNuclearFamily = null;
     }
 
-    public static void initializeTransformationMatrix() {
+    public void initializeTransformationMatrix() {
         class Initializer {
+
             int[] getTransformation(int[] pitchClassSet) {
                 for (int a = 0; a < triadDictionary.length; a++) {
                     int[] triad = triadDictionary[a];
@@ -69,8 +73,8 @@ public class Triad// implements Cloneable
                         boolean areEqual = true;
                         for (int n = i; n < i + pitchClassSet.length; n++) {
                             if (triad[n - i] != (pitchClassSet[n % pitchClassSet.length]
-                                    + (Sequencer.TET - proposedRoot))
-                                    % Sequencer.TET) {
+                                    + (s.TET - proposedRoot))
+                                    % s.TET) {
                                 areEqual = false;
                                 break;
                             }
@@ -103,8 +107,8 @@ public class Triad// implements Cloneable
                  * }
                  */
 
-                int[][] alloweds = new int[][] { new int[Sequencer.TET - 1] };
-                for (int i = 0; i < Sequencer.TET - 1; i++)
+                int[][] alloweds = new int[][] { new int[s.TET - 1] };
+                for (int i = 0; i < s.TET - 1; i++)
                     alloweds[0][i] = i + 1;
 
                 /*
@@ -165,14 +169,14 @@ public class Triad// implements Cloneable
                         for (int alt : allowedAlterations) {// int value = triad[variableMember]; value <
                                                             // triad[variableMember] + 12; value++){
                             int value = triad[variableMember] + alt;
-                            if (value % Sequencer.TET == triad[variableMember])
+                            if (value % s.TET == triad[variableMember])
                                 continue;
                             int[] potentialTriad = new int[triad.length];
                             for (int i = 0; i < triad.length; i++)
                                 if (i != variableMember)
                                     potentialTriad[i] = triad[i];
                                 else
-                                    potentialTriad[i] = value % Sequencer.TET;
+                                    potentialTriad[i] = value % s.TET;
                             Arrays.sort(potentialTriad);
                             transformedTriads.add(potentialTriad);
                         }
@@ -184,7 +188,7 @@ public class Triad// implements Cloneable
                         Arrays.sort(potentialTriad);
                         transformedTriads.add(potentialTriad);
                     }
-                    for (int val = 0; val < Sequencer.TET; val++) {
+                    for (int val = 0; val < s.TET; val++) {
                         boolean used = false;
                         for (int v : triad)
                             if (v == val) {
@@ -246,7 +250,7 @@ public class Triad// implements Cloneable
     public int findShortestPath(Triad relative) {
         if (equals(relative))
             return 0;
-        Triad[][] grid = new Triad[triadDictionary.length][Sequencer.TET];
+        Triad[][] grid = new Triad[triadDictionary.length][s.TET];
         grid[type][root] = this;
         int distance = 1;
         for (distance = 1; !search(relative, grid) && distance < searchLimit; distance++)
@@ -265,7 +269,7 @@ public class Triad// implements Cloneable
         myNuclearFamily = new ArrayList<Triad>();
         for (int i = 0; i < transformationGroup.length; i++) {
             Triad unbornSibling = new Triad(transformationGroup[i][0],
-                    (root + transformationGroup[i][1]) % Sequencer.TET);
+                    (root + transformationGroup[i][1]) % s.TET, s);
             if (unbornSibling.isBorn(grid))
                 myNuclearFamily.add(unbornSibling);
             if (unbornSibling.equals(relative))
@@ -283,12 +287,12 @@ public class Triad// implements Cloneable
 
     public Triad generateTransformed(int i) {
         int[] transformation = transformationGroup[i];
-        return new Triad(transformation[0], (root + transformation[1]) % Sequencer.TET);
+        return new Triad(transformation[0], (root + transformation[1]) % s.TET,s);
     }
 
     public Triad generateDirectedTransformed(int i) {
         int[] transformation = transformationGroup[i];// directedTransformationGroup
-        return new Triad(transformation[0], (root + transformation[1]) % Sequencer.TET);
+        return new Triad(transformation[0], (root + transformation[1]) % s.TET,s);
     }
 
     public void printOutTransformations() {
@@ -306,26 +310,26 @@ public class Triad// implements Cloneable
     public String toString() {
         String myName = "[";
         for (int i = 0; i < triadDictionary[type].length; i++)
-            myName += ((root + triadDictionary[type][i]) % Sequencer.TET) + ", ";
+            myName += ((root + triadDictionary[type][i]) % s.TET) + ", ";
         myName = myName.substring(0, myName.length() - 2) + "] (" + type + "," + root + ")";
         return myName;
     }
 
-    public static void test() {
-        Triad[][] grid = new Triad[4][Sequencer.TET];
-        Triad a = new Triad(0, 0);
-        Triad b = new Triad(1, 3);
+    public static void test(Sequencer s) {
+        Triad[][] grid = new Triad[4][s.TET];
+        Triad a = new Triad(0, 0,s);
+        Triad b = new Triad(1, 3,s);
         System.out.println(a.findShortestPath(b));
     }
 
     public String print() {
 
         String seq = "[";
-        boolean[] notes = new boolean[Sequencer.TET];
+        boolean[] notes = new boolean[s.TET];
         for (int i = 0; i < triadDictionary[type].length; i++) {
-            notes[(root + triadDictionary[type][i]) % Sequencer.TET] = true;
+            notes[(root + triadDictionary[type][i]) % s.TET] = true;
         }
-        for (int i = 0; i < Sequencer.TET; i++) {
+        for (int i = 0; i < s.TET; i++) {
             if (notes[i])
                 seq += NOTE_NAMES[i] + ", ";
             else
