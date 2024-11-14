@@ -50,7 +50,7 @@ public class GUI
      */
 
     public void hook(){
-        new Piece().piece2(envs);
+        //new Piece().piece2(envs);
     }
 
     public GUI()
