@@ -38,9 +38,9 @@ public class Piece {
          * true));
          * ww.render();
          */
-         parsimoniousTexture1();
+        parsimoniousTexture1();
         // testChordProgression();
-        //onsetProbabilities(15);
+        // onsetProbabilities(15);
     }
 
     public static void main(String[] args) {
@@ -113,7 +113,7 @@ public class Piece {
         int timeMode = 1;
         // 0 - fast even rhythms 1 - probiblistic MER based on TET
 
-        int numOfChords = 2;//used only for rhythm in time mode 1
+        int numOfChords = 2;// used only for rhythm in time mode 1
 
         Random rand = new Random(123);
         int[][] c = populateChords(seq, rand, 6 * seq.TET);
@@ -122,7 +122,7 @@ public class Piece {
 
         double time = 0;
         WaveWriter ww = new WaveWriter("parsi");
-        Synth[] synths = { new SampleSynth(0), new SampleSynth(1) };
+        Synth[] synths = { new SampleSynth(0) };// new SampleSynth(0), new SampleSynth(1) };
 
         double[] pan = new double[] { 1 };
         ArrayList<Integer> octs = new ArrayList<Integer>();
@@ -134,7 +134,7 @@ public class Piece {
             int[][] notes = seq.getChords();
             int sNum = 0;
             for (int[][] chords : strata) {
-                realizeChords(chords, notes, time, synths[sNum % 2], ww, rand, pan, seq.TET, timeMode);
+                realizeChords(chords, notes, time, synths[sNum % synths.length], ww, rand, pan, seq.TET, timeMode);
                 sNum++;
             }
             switch (timeMode) {
@@ -146,15 +146,15 @@ public class Piece {
                     break;
             }
             double probOfNewVoice = 0;
-            switch(timeMode){
+            switch (timeMode) {
                 case 0:
-                probOfNewVoice = 0.1;
-                break;
+                    probOfNewVoice = 0.1;
+                    break;
                 case 1:
-                probOfNewVoice = 0.0;
-                for(int i = 0; i < 3; i++)
-                    strata.add(populateChords(seq, rand, 4 * seq.TET + (rand.nextInt(3) + 2) * seq.TET));
-                break;
+                    probOfNewVoice = 0.0;
+                    for (int i = 0; i < 3; i++)
+                        strata.add(populateChords(seq, rand, 4 * seq.TET + (rand.nextInt(3) + 2) * seq.TET));
+                    break;
             }
             if (octs.size() > 0 && rand.nextDouble() < probOfNewVoice) {
                 int ind = (int) (rand.nextDouble() * octs.size());
@@ -183,27 +183,39 @@ public class Piece {
     public void realizeChords(int[][] chords, int[][] notes, double time, Synth synth, WaveWriter ww, Random rand,
             double[] pan, int tet, int timeMode) {
 
-                double[] probDist = onsetProbabilities(tet);
-        for (int n = 0; n < chords.length; n++) {
-            for (int i = 0; i < chords[n].length; i++) {
-                switch (timeMode) {
-                    case 0:
+        switch (timeMode) {
+            case 0:
+                for (int n = 0; n < chords.length; n++) {
+                    for (int i = 0; i < chords[n].length; i++) {
                         synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] / (double) tet), 0.01, pan);
                         time += 1 / 10.0;
-                        break;
-                    case 1:
-                        double rnd = rand.nextDouble();
-                        double tot = 0;
-                        int ind = 0;
-                        for(ind = 0; ind < probDist.length && tot <= rnd; ind++){
-                            tot += probDist[i];
-                        }
-                        synth.writeNote(ww.df, time + (ind / 10.0) + (n * tet / 10.0), c0Freq * Math.pow(2, chords[n][i] / (double) tet), 0.01, pan);
-                        break;
+                    }
                 }
-            }
+                advanceChord(chords, notes, tet );
+                break;
+            case 1:
+                int density = 10;
+                double[] probDist = onsetProbabilities(tet);
+                boolean[] onset = new boolean[probDist.length];
+                for (int i = 0; i < density; i++) {
+                    double rnd = rand.nextDouble();
+                    double tot = 0;
+                    int ind = 0;
+                    for (ind = 0; ind < probDist.length && tot <= rnd; ind++) {
+                        tot += probDist[i];
+                    }
+                    onset[ind] = true;
+                }
+                for(int ind = 0; ind < onset.length; ind++){
+                    synth.writeNote(ww.df, time + (ind / 10.0),
+                            c0Freq * Math.pow(2, chords[0][9] / (double) tet), 0.01, pan);
+                }
+                break;
         }
 
+    }
+
+    public void advanceChord(int[][] chords, int[][] notes, int tet) {
         // progress to next chord
         for (int n = 0; n < chords.length; n++) {
             boolean[] notesAreContained = new boolean[chords[n].length];
