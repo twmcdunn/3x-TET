@@ -113,7 +113,11 @@ public class Piece {
         int timeMode = 1;
         // 0 - fast even rhythms 1 - probiblistic MER based on TET
 
-        int numOfChords = 2;// used only for rhythm in time mode 1
+        //used in rhythmic mode 1
+        int pulses = 15; 
+        int progsPerTimeline = 1; // a subtle value. 2 makes harmonic rhythm faster (anything higher leads to repeated notes)
+        int onsetsPerTimeline = 10;
+        int timelineChangeFreq = 5; //how often the timeline changes
 
         Random rand = new Random(123);
         int[][] c = populateChords(seq, rand, 6 * seq.TET);
@@ -130,11 +134,17 @@ public class Piece {
             if (i != 2)
                 octs.add(new Integer(i));
         }
+        int tl = 0;
+        int tlSeed = -1;
         while (time < 60) {
             int[][] notes = seq.getChords();
             int sNum = 0;
-            for (int[][] chords : strata) {
-                realizeChords(chords, notes, time, synths[sNum % synths.length], ww, rand, pan, seq.TET, timeMode);
+            if(tl % timelineChangeFreq == 0)
+                tlSeed = rand.nextInt();
+                tl++;
+            for (int stratum = 0; stratum < strata.size(); stratum++) {
+                int[][] chords = strata.get(stratum);
+                realizeChords(chords, notes, time, synths[sNum % synths.length], ww, rand, pan, seq.TET, timeMode, onsetsPerTimeline,progsPerTimeline, stratum + tlSeed,pulses);//rand.nextInt()
                 sNum++;
             }
             switch (timeMode) {
@@ -142,7 +152,7 @@ public class Piece {
                     time += 8 * 1 / 10.0;
                     break;
                 case 1:
-                    time += numOfChords * seq.TET * 1 / 10.0;
+                    time += pulses * 1 / 10.0;
                     break;
             }
             double probOfNewVoice = 0;
@@ -151,10 +161,7 @@ public class Piece {
                     probOfNewVoice = 0.1;
                     break;
                 case 1:
-                    probOfNewVoice = 0.0;
-                    for (int i = 0; i < 3; i++)
-                        strata.add(populateChords(seq, rand, 4 * seq.TET + (rand.nextInt(3) + 2) * seq.TET));
-                    break;
+                    probOfNewVoice = 0.5;
             }
             if (octs.size() > 0 && rand.nextDouble() < probOfNewVoice) {
                 int ind = (int) (rand.nextDouble() * octs.size());
@@ -180,8 +187,12 @@ public class Piece {
         return chords;
     }
 
+    /*
+    Parameters specific to mode 1:
+     int numOfOnsets, int numOfProgressions, int seed
+    */
     public void realizeChords(int[][] chords, int[][] notes, double time, Synth synth, WaveWriter ww, Random rand,
-            double[] pan, int tet, int timeMode) {
+            double[] pan, int tet, int timeMode, int numOfOnsets, int numOfProgressions, int seed,int pulses) {
 
         switch (timeMode) {
             case 0:
@@ -194,21 +205,57 @@ public class Piece {
                 advanceChord(chords, notes, tet );
                 break;
             case 1:
-                int density = 10;
-                double[] probDist = onsetProbabilities(tet);
-                boolean[] onset = new boolean[probDist.length];
-                for (int i = 0; i < density; i++) {
-                    double rnd = rand.nextDouble();
-                    double tot = 0;
+            //inputs
+
+                double[] probDist = onsetProbabilities(pulses);
+                boolean[] onset = new boolean[probDist.length];//ensures onset indexes are unique (could be done with .contains)
+                ArrayList<Integer> onsets = new ArrayList<Integer>();
+                Random localRand = new Random(seed);
+                for (int i = 0; i < numOfOnsets; i++) {
                     int ind = 0;
-                    for (ind = 0; ind < probDist.length && tot <= rnd; ind++) {
-                        tot += probDist[i];
-                    }
+                    do {
+                        double rnd = localRand.nextDouble();
+                        double tot = 0;
+                        ind = 0;
+                        for (ind = 0; tot <= rnd; ind++) {
+                            tot += probDist[ind];
+                        }
+                        ind--;
+                    } while (onset[ind]);// must be a unique onset
                     onset[ind] = true;
+                    onsets.add(ind);
                 }
-                for(int ind = 0; ind < onset.length; ind++){
-                    synth.writeNote(ww.df, time + (ind / 10.0),
-                            c0Freq * Math.pow(2, chords[0][9] / (double) tet), 0.01, pan);
+                int numOfChords = numOfProgressions * chords.length;
+                double exactNotesPerChord =  numOfOnsets / (double) numOfChords;
+                ArrayList<Integer> notesPerChord = new ArrayList<Integer>();
+                double tot = exactNotesPerChord;
+                double lastTot = 0;
+                while(tot <= numOfOnsets){
+                    notesPerChord.add(((int)tot) - ((int)lastTot));
+                    lastTot = tot;
+                    tot += exactNotesPerChord;
+                }
+
+                int onsetIndex = 0;
+
+                int chordIndex = 0;
+                int boardIndex = 0;// not which board, but where in the board
+                while (onsetIndex < onsets.size()) {// 1 pass = 1 chord
+
+                    for (int chordMemberIndex = 0; chordMemberIndex < notesPerChord
+                            .get(chordIndex); chordMemberIndex++) {
+                        int note = chords[boardIndex][chordMemberIndex % chords[boardIndex].length];
+                        synth.writeNote(ww.df, time + (onsets.get(onsetIndex) / 10.0),
+                                c0Freq * Math.pow(2, note / (double) tet), 0.01, pan);
+                        onsetIndex++;
+                    }
+
+                    boardIndex++;
+                    chordIndex++;
+                    if (boardIndex == chords.length) {
+                        advanceChord(chords, notes, tet);
+                        boardIndex = 0;
+                    }
                 }
                 break;
         }
