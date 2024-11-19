@@ -32,9 +32,12 @@ public class WaveWriter
         //render();
     }
 
-    //render wave file
     public void render(){
-        for(int chan = 0; chan < 8; chan++){
+        render(8);
+    }
+    //render wave file
+    public void render(int chans){
+        for(int chan = 0; chan < chans; chan++){
             mpis = new MonoPcmInputStream();
             /*
             float peak = 0;
