@@ -280,6 +280,7 @@ public class Piece {
      * int numOfOnsets, int numOfProgressions, int seed
      */
     public static double chordVolScalar = 0.1;
+    public static double chordVolMin = 0.001;
     public void realizeChords(int[][] chords, int[][] notes, double time, Synth synth, WaveWriter ww, Random rand,
             double[] pan, int tet, int timeMode, Stratum strat, int numOfOnsets, int numOfProgressions, int seed, int pulses) {
 
@@ -287,7 +288,7 @@ public class Piece {
             case 0:
                 for (int n = 0; n < chords.length; n++) {
                     for (int i = 0; i < chords[n].length; i++) {
-                        synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] / (double) tet), chordVolScalar * strat.vol(time), pan);
+                        synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] / (double) tet), chordVolScalar * strat.vol(time) + chordVolMin, pan);
                         time += 1 / 10.0;
                     }
                 }
@@ -318,7 +319,7 @@ public class Piece {
                             .get(chordIndex); chordMemberIndex++) {
                         int note = chords[boardIndex][chordMemberIndex % chords[boardIndex].length];
                         synth.writeNote(ww.df, time + (onsets.get(onsetIndex) / 10.0),
-                                c0Freq * Math.pow(2, note / (double) tet), chordVolScalar * strat.vol(time), pan);
+                                c0Freq * Math.pow(2, note / (double) tet), chordVolScalar * strat.vol(time)+ chordVolMin, pan);
                         onsetIndex++;
                     }
 
@@ -341,7 +342,7 @@ public class Piece {
                             if (osInd % 2 == 1)
                                 note = comp[member];
                             synth.writeNote(ww.df, time + (onsets.get(osInd) / 10.0) + i * pulses / 10.0,
-                                    c0Freq * Math.pow(2, note / (double) tet), chordVolScalar * strat.vol(time), pan);
+                                    c0Freq * Math.pow(2, note / (double) tet), chordVolScalar * strat.vol(time)+ chordVolMin, pan);
                         }
                     }
                 }
