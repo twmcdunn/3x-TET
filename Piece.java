@@ -128,7 +128,7 @@ public class Piece {
     }
 
     public void parsimoniousTexture1() {
-        boolean testOctave = true;
+        boolean testOctave = false;
         int octToTest = 4;
         Sequencer seq = new Sequencer(1);
 
