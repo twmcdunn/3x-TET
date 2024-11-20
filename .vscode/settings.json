@@ -2,5 +2,7 @@
     "java.project.sourcePaths": [
         "."
     ],
-    "java.project.referencedLibraries": []
+    "java.project.referencedLibraries": [
+        "/Users/peanutbutter/Documents/Programs/Music and sound projects/Fixed Media/ResynthLab/commons-math3-3.6.1.jar"
+    ]
 }

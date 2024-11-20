@@ -39,14 +39,14 @@ public class Piece {
          * true));
          * ww.render();
          */
-        //System.out.println(closestOct(6,0,12));
+        // System.out.println(closestOct(6,0,12));
         parsimoniousTexture1();
         // testChordProgression();
         // onsetProbabilities(15);
     }
 
     public static void main(String[] args) {
-        
+
         new Piece();
     }
 
@@ -110,70 +110,83 @@ public class Piece {
 
     }
 
-    public void foreground(){
-       // { 0, 5, 9, 12 }, { 0, 4, 9, 12 }
+    public void foreground() {
+        // { 0, 5, 9, 12 }, { 0, 4, 9, 12 }
 
-       // {6,11,0,3} {1,5,10,13} {3,7,12,0} {8,13,2,5} <CHORD PROGRESSION
-       //{1,6,10,0}                 {3,8,12,2} <BACKGROUNDS (2 and 2)
-            
-       // {6,10,0,3} {1,5,11,13} {3,7,13,0} {8,12,2,5} <CHORD PROGRESSION (T5)
+        // {6,11,0,3} {1,5,10,13} {3,7,12,0} {8,13,2,5} <CHORD PROGRESSION
+        // {1,6,10,0} {3,8,12,2} <BACKGROUNDS (2 and 2)
 
-       // {11,0,5,3?} {1,6,10,13} {3,8,12,0} {13,2,7,5?} <CHORD PROGRESSION (T-5)
-       //should be 8 and 10, but modified for horizontal relations
+        // {6,10,0,3} {1,5,11,13} {3,7,13,0} {8,12,2,5} <CHORD PROGRESSION (T5)
 
+        // {11,0,5,3?} {1,6,10,13} {3,8,12,0} {13,2,7,5?} <CHORD PROGRESSION (T-5)
+        // should be 8 and 10, but modified for horizontal relations
 
-       //different approach (second half is T5 of first)
-      //  {6,11,0,3} {1,5,10,13}  T5 {6,10,0,3} {1,5,11,13}
-      //  {11,0,5,3} {6,10,1,13}    {6,10,0,13} {11,1,5,8}
-           
+        // different approach (second half is T5 of first)
+        // {6,11,0,3} {1,5,10,13} T5 {6,10,0,3} {1,5,11,13}
+        // {11,0,5,3} {6,10,1,13} {6,10,0,13} {11,1,5,8}
+
     }
 
     public void parsimoniousTexture1() {
         boolean testOctave = false;
-        int octToTest = 7;
+        int octToTest = 4;
         Sequencer seq = new Sequencer(1);
 
-        int timeMode = 0;
+        int timeMode = 1;
         // 0 - fast even rhythms 1 - probiblistic MER based on TET
 
-        //used in rhythmic mode 1
-        int pulses = 15; 
-        int progsPerTimeline = 1; // a subtle value. 2 makes harmonic rhythm faster (anything higher leads to repeated notes)
-        int onsetsPerTimeline = 10;
-        int timelineChangeFreq = 1; //how often the timeline changes
-        
-        //pulses = 2;
-        //onsetsPerTimeline = 2;
+        // used in rhythmic mode 1
+        int pulses = 15;
+        int progsPerTimeline = 1; // a subtle value. 2 makes harmonic rhythm faster (anything higher leads to
+                                  // repeated notes)
+        int onsetsPerTimeline = 5;
+        int timelineChangeFreq = 1; // how often the timeline changes
+
+        // pulses = 2;
+        // onsetsPerTimeline = 2;
 
         Random rand = new Random(123);
-        int oct = 6;
-        if(testOctave)
-        oct = octToTest;
-        int[][] c = populateChords(seq, rand, oct * seq.TET, timeMode);//6
-        ArrayList<int[][]> strata = new ArrayList<int[][]>();
-        strata.add(c);
+        int oct = 7;
+        if (testOctave)
+            oct = octToTest;
+        int[][] c = populateChords(seq, rand, oct * seq.TET, timeMode);// 6
+        ArrayList<Stratum> strata = new ArrayList<Stratum>();
+        strata.add(new Stratum(c, oct, new SampleSynth(8)));
 
         double time = 0;
         WaveWriter ww = new WaveWriter("parsi");
-        Synth[] synths = { new SampleSynth(0) };// new SampleSynth(0), new SampleSynth(1) };
+        Synth[] synths = { new SampleSynth(8) };// new SampleSynth(0), new SampleSynth(1) };
 
         double[] pan = new double[] { 1 };
-        ArrayList<Integer> octs = new ArrayList<Integer>();
-        for (int i = 0; i < 6; i++) {
-            if (i != 2)//2
-                octs.add(new Integer(i));
-        }
+        ArrayList<Stratum> unplayedStrata = new ArrayList<Stratum>();
+        unplayedStrata.add(new Stratum(null, 7,new SampleSynth(0)));
+        unplayedStrata.add(new Stratum(null, 6,new SampleSynth(0)));
+        unplayedStrata.add(new Stratum(null, 6,new SampleSynth(2)));
+        unplayedStrata.add(new Stratum(null, 5,new SampleSynth(2)));
+        unplayedStrata.add(new Stratum(null, 6,new SampleSynth(8)));
+        
+        
+
+        Synth vibs = new Vibs();
+
+        //strata.remove(0);
+        unplayedStrata.add(new Stratum(null, 5,vibs));
+        unplayedStrata.add(new Stratum(null, 4,vibs));
+
+        
+
         int tl = 0;
         int tlSeed = -1;
-        while (time < 60) {
+        while (time < 60 * 4) {
             int[][] notes = seq.getChords();
             int sNum = 0;
-            if(tl % timelineChangeFreq == 0)
+            if (tl % timelineChangeFreq == 0)
                 tlSeed = rand.nextInt();
-                tl++;
+            tl++;
             for (int stratum = 0; stratum < strata.size(); stratum++) {
-                int[][] chords = strata.get(stratum);
-                realizeChords(chords, notes, time, synths[sNum % synths.length], ww, rand, pan, seq.TET, timeMode, onsetsPerTimeline,progsPerTimeline, stratum + tlSeed,pulses);//rand.nextInt()
+                int[][] chords = strata.get(stratum).chords;
+                realizeChords(chords, notes, time, strata.get(stratum).synth, ww, rand, pan, seq.TET, strata.get(stratum).target * seq.TET, timeMode,
+                        onsetsPerTimeline, progsPerTimeline, stratum + tlSeed, pulses);// rand.nextInt()
                 sNum++;
             }
             switch (timeMode) {
@@ -183,7 +196,7 @@ public class Piece {
                 case 1:
                     time += pulses * 1 / 10.0;
                     break;
-                    case 2:
+                case 2:
                     time += pulses * 2 / 10.0;
                     break;
             }
@@ -193,19 +206,32 @@ public class Piece {
                     probOfNewVoice = 0.1;
                     break;
                 case 1:
-                    probOfNewVoice = 0.5;
+                    probOfNewVoice = 8 / 160.0;//over the course of 4 minutes all voices enter
+                    double probOfNewOnset = 5 / 160.0;//5 out of 160 progressions (over 4 minutes)
+                    if(onsetsPerTimeline < 10 && rand.nextDouble() < probOfNewOnset){
+                        onsetsPerTimeline++;
+                    }
+                    double probOfNewRep = 5 / 160.0;
+                    if(timelineChangeFreq < 5 && rand.nextDouble() < probOfNewRep){
+                        timelineChangeFreq++;
+                    }
+                    double probOfDrone = 5 / 80.0;
+                    if(time > 120 && rand.nextDouble() < probOfDrone){
+                        realizeDrone(strata.get(0).chords, new SampleSynth(17), seq.TET, ww, time, 0.5, new double[]{1});
+                    }
                     break;
                 case 2:
                     probOfNewVoice = 0.05;
                     break;
 
             }
-            if(testOctave)
-            probOfNewVoice = 0;
-            if (octs.size() > 0 && rand.nextDouble() < probOfNewVoice) {
-                int ind = (int) (rand.nextDouble() * octs.size());
-                strata.add(populateChords(seq, rand, 4 * seq.TET + octs.get(ind) * seq.TET, timeMode));
-                octs.remove(ind);
+            if (testOctave)
+                probOfNewVoice = 0;
+            if (unplayedStrata.size() > 0 && rand.nextDouble() < probOfNewVoice) {
+                int ind = (int) (rand.nextDouble() * unplayedStrata.size());
+                unplayedStrata.get(ind).chords = populateChords(seq, rand, unplayedStrata.get(ind).target * seq.TET, timeMode);
+                strata.add(unplayedStrata.get(ind));
+                unplayedStrata.remove(ind);
             }
         }
         System.out.println(seq.myGame);
@@ -220,16 +246,15 @@ public class Piece {
             ArrayList<Integer> chrd = new ArrayList<Integer>();
             for (int n = 0; n < chords[i].length; n++) {
                 int ind = (int) (rand.nextDouble() * notes.size());
-                if(timeMode == 2){
-                    chrd.add( closestOct(target, notes.get(ind), seq.TET));
-                }
-                else
+                if (timeMode == 2) {
+                    chrd.add(closestOct(target, notes.get(ind), seq.TET));
+                } else
                     chords[i][n] = closestOct(target, notes.get(ind), seq.TET);
                 notes.remove(ind);
             }
-            if(timeMode == 2){
+            if (timeMode == 2) {
                 Collections.sort(chrd);
-                for(int n = 0; n < chrd.size(); n++){
+                for (int n = 0; n < chrd.size(); n++) {
                     chords[i][n] = chrd.get(n) - seq.TET * (n % 2);
                 }
             }
@@ -238,11 +263,11 @@ public class Piece {
     }
 
     /*
-    Parameters specific to mode 1:
-     int numOfOnsets, int numOfProgressions, int seed
-    */
+     * Parameters specific to mode 1:
+     * int numOfOnsets, int numOfProgressions, int seed
+     */
     public void realizeChords(int[][] chords, int[][] notes, double time, Synth synth, WaveWriter ww, Random rand,
-            double[] pan, int tet, int timeMode, int numOfOnsets, int numOfProgressions, int seed,int pulses) {
+            double[] pan, int tet, int target, int timeMode, int numOfOnsets, int numOfProgressions, int seed, int pulses) {
 
         switch (timeMode) {
             case 0:
@@ -252,19 +277,19 @@ public class Piece {
                         time += 1 / 10.0;
                     }
                 }
-                advanceChord(chords, notes, tet );
+                advanceChord(chords, notes, tet, target);
                 break;
             case 1:
-            //inputs
+                // inputs
 
-               ArrayList<Integer> onsets = generateOnsets(pulses, seed, numOfOnsets);
+                ArrayList<Integer> onsets = generateOnsets(pulses, seed, numOfOnsets);
                 int numOfChords = numOfProgressions * chords.length;
-                double exactNotesPerChord =  numOfOnsets / (double) numOfChords;
+                double exactNotesPerChord = numOfOnsets / (double) numOfChords;
                 ArrayList<Integer> notesPerChord = new ArrayList<Integer>();
                 double tot = exactNotesPerChord;
                 double lastTot = 0;
-                while(tot <= numOfOnsets){
-                    notesPerChord.add(((int)tot) - ((int)lastTot));
+                while (tot <= numOfOnsets) {
+                    notesPerChord.add(((int) tot) - ((int) lastTot));
                     lastTot = tot;
                     tot += exactNotesPerChord;
                 }
@@ -286,35 +311,36 @@ public class Piece {
                     boardIndex++;
                     chordIndex++;
                     if (boardIndex == chords.length) {
-                        advanceChord(chords, notes, tet);
+                        advanceChord(chords, notes, tet,target);
                         boardIndex = 0;
                     }
                 }
                 break;
-                case 2:
-                chords[1] = chordComplement(chords[0],chords[1], tet);
-                    for (int i = 0; i < chords.length; i++) {
-                        int[] comp = chordComplement(chords[i], tet);
-                        for (int member = 0; member < chords[i].length; member++) {
-                            onsets = generateOnsets(pulses, seed + member + chords[i].length * i, numOfOnsets);
-                            for (int osInd = 0; osInd < onsets.size(); osInd++) {
-                                int note = chords[i][member];
-                                if (osInd % 2 == 1)
-                                    note = comp[member];
-                                synth.writeNote(ww.df, time + (onsets.get(osInd) / 10.0) + i * pulses / 10.0,
-                                        c0Freq * Math.pow(2, note / (double) tet), 0.01, pan);
-                            }
+            case 2:
+                chords[1] = chordComplement(chords[0], chords[1], tet);
+                for (int i = 0; i < chords.length; i++) {
+                    int[] comp = chordComplement(chords[i], tet);
+                    for (int member = 0; member < chords[i].length; member++) {
+                        onsets = generateOnsets(pulses, seed + member + chords[i].length * i, numOfOnsets);
+                        for (int osInd = 0; osInd < onsets.size(); osInd++) {
+                            int note = chords[i][member];
+                            if (osInd % 2 == 1)
+                                note = comp[member];
+                            synth.writeNote(ww.df, time + (onsets.get(osInd) / 10.0) + i * pulses / 10.0,
+                                    c0Freq * Math.pow(2, note / (double) tet), 0.01, pan);
                         }
                     }
-                    advanceChord(chords, notes, tet );
+                }
+                advanceChord(chords, notes, tet, target);
                 break;
         }
 
     }
 
-    public ArrayList<Integer> generateOnsets(int pulses, int seed, int numOfOnsets){
+    public ArrayList<Integer> generateOnsets(int pulses, int seed, int numOfOnsets) {
         double[] probDist = onsetProbabilities(pulses);
-        boolean[] onset = new boolean[probDist.length];//ensures onset indexes are unique (could be done with .contains)
+        boolean[] onset = new boolean[probDist.length];// ensures onset indexes are unique (could be done with
+                                                       // .contains)
         ArrayList<Integer> onsets = new ArrayList<Integer>();
         Random localRand = new Random(seed);
         for (int i = 0; i < numOfOnsets; i++) {
@@ -335,7 +361,7 @@ public class Piece {
         return onsets;
     }
 
-    public void advanceChord(int[][] chords, int[][] notes, int tet) {
+    public void advanceChord(int[][] chords, int[][] notes, int tet, int target) {
         // progress to next chord
         for (int n = 0; n < chords.length; n++) {
             boolean[] notesAreContained = new boolean[chords[n].length];
@@ -361,7 +387,12 @@ public class Piece {
                 continue;// why would the chord be identical?
             for (int j = 0; j < notesAreContained.length; j++) {
                 if (!notesAreContained[j]) {
-                    chords[n][chordReplaceIndex] = closestOct(chords[n][chordReplaceIndex], notes[n][j], tet);
+                    int note = closestOct(chords[n][chordReplaceIndex], notes[n][j], tet);
+                    while (note - target > tet)
+                        note -= tet;
+                    while (target - note > tet)
+                        note += tet;
+                    chords[n][chordReplaceIndex] = note;
                     break;
                 }
             }
@@ -445,6 +476,25 @@ public class Piece {
         return vl;
     }
 
+    public void realizeDrone(int[][] chords, Synth synth, int tet, WaveWriter ww, double time, double vol, double[]pan){
+        int[] notePopularity = new int[tet];
+        for(int[] c: chords)
+        for(int n: c)
+        notePopularity[n % tet]++;
+        int maxPopularity = 0;
+        int popularNote = 0;
+        for(int n = 0; n < notePopularity.length;n++){
+            if(notePopularity[n] > maxPopularity){
+                maxPopularity = notePopularity[n];
+                popularNote = n % tet;
+            }
+        }
+        //play popular note as close to A3 as possible
+        int note = closestOct(tet * 3 + (int)Math.rint(tet * 9/12.0), popularNote, tet);
+        synth.writeNote(ww.df,time,Math.pow(2,note / (double)tet) *c0Freq, vol, pan);
+
+    }
+
     public int[] chordComplement(int[] chord, int[] secondChord, int tet) {
         ArrayList<ArrayList<Integer>> vls = allVLs(chord, secondChord, new ArrayList<Integer>(), tet);
         int leastSteps = Integer.MAX_VALUE;
@@ -464,40 +514,40 @@ public class Piece {
         return vl;
     }
 
-    public ArrayList<ArrayList<Integer>> allVLs(int[] chord, ArrayList<Integer>vl, int tet){
-        
+    public ArrayList<ArrayList<Integer>> allVLs(int[] chord, ArrayList<Integer> vl, int tet) {
+
         ArrayList<ArrayList<Integer>> completeVLs = new ArrayList<ArrayList<Integer>>();
-        if(vl.size() == chord.length){
+        if (vl.size() == chord.length) {
             completeVLs.add(vl);
             return completeVLs;
         }
-            int target = chord[vl.size()];
-            for(int i = 0; i < chord.length; i++)
-                if(i!=vl.size()){
-                    ArrayList<Integer> vlCopy = new ArrayList<Integer>();
-                    vlCopy.addAll(vl);
-                    vlCopy.add(closestOct(target,chord[i],tet));
-                    completeVLs.addAll(allVLs(chord,vlCopy,tet));
-                }
-        
+        int target = chord[vl.size()];
+        for (int i = 0; i < chord.length; i++)
+            if (i != vl.size()) {
+                ArrayList<Integer> vlCopy = new ArrayList<Integer>();
+                vlCopy.addAll(vl);
+                vlCopy.add(closestOct(target, chord[i], tet));
+                completeVLs.addAll(allVLs(chord, vlCopy, tet));
+            }
+
         return completeVLs;
     }
 
-    public ArrayList<ArrayList<Integer>> allVLs(int[] chord, int[] secondChord, ArrayList<Integer>vl, int tet){
-        
+    public ArrayList<ArrayList<Integer>> allVLs(int[] chord, int[] secondChord, ArrayList<Integer> vl, int tet) {
+
         ArrayList<ArrayList<Integer>> completeVLs = new ArrayList<ArrayList<Integer>>();
-        if(vl.size() == chord.length){
+        if (vl.size() == chord.length) {
             completeVLs.add(vl);
             return completeVLs;
         }
-            int target = secondChord[vl.size()];
-            for(int i = 0; i < chord.length; i++){
-                ArrayList<Integer> vlCopy = new ArrayList<Integer>();
-                vlCopy.addAll(vl);
-                vlCopy.add(closestOct(target, chord[i],tet));
-                completeVLs.addAll(allVLs(chord,secondChord, vlCopy,tet));
-            }
-        
+        int target = secondChord[vl.size()];
+        for (int i = 0; i < chord.length; i++) {
+            ArrayList<Integer> vlCopy = new ArrayList<Integer>();
+            vlCopy.addAll(vl);
+            vlCopy.add(closestOct(target, chord[i], tet));
+            completeVLs.addAll(allVLs(chord, secondChord, vlCopy, tet));
+        }
+
         return completeVLs;
     }
 }
