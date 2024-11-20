@@ -128,7 +128,7 @@ public class Piece {
     }
 
     public void parsimoniousTexture1() {
-        boolean testOctave = false;
+        boolean testOctave = true;
         int octToTest = 4;
         Sequencer seq = new Sequencer(1);
 
@@ -151,7 +151,7 @@ public class Piece {
             oct = octToTest;
         int[][] c = populateChords(seq, rand, oct * seq.TET, timeMode);// 6
         ArrayList<Stratum> strata = new ArrayList<Stratum>();
-        strata.add(new Stratum(c, oct, new SampleSynth(8)));
+        strata.add(new Stratum(c, oct, new SampleSynth(8), rand));
 
         double time = 0;
         WaveWriter ww = new WaveWriter("parsi");
@@ -159,25 +159,38 @@ public class Piece {
 
         double[] pan = new double[] { 1 };
         ArrayList<Stratum> unplayedStrata = new ArrayList<Stratum>();
-        unplayedStrata.add(new Stratum(null, 7,new SampleSynth(0)));
-        unplayedStrata.add(new Stratum(null, 6,new SampleSynth(0)));
-        unplayedStrata.add(new Stratum(null, 6,new SampleSynth(2)));
-        unplayedStrata.add(new Stratum(null, 5,new SampleSynth(2)));
-        unplayedStrata.add(new Stratum(null, 6,new SampleSynth(8)));
+        unplayedStrata.add(new Stratum(null, 7,new SampleSynth(0), rand));
+        unplayedStrata.add(new Stratum(null, 6,new SampleSynth(0), rand));
+        unplayedStrata.add(new Stratum(null, 6,new SampleSynth(2), rand));
+        unplayedStrata.add(new Stratum(null, 5,new SampleSynth(2), rand));
+        unplayedStrata.add(new Stratum(null, 6,new SampleSynth(8), rand));
         
         
 
         Synth vibs = new Vibs();
 
         //strata.remove(0);
-        unplayedStrata.add(new Stratum(null, 5,vibs));
-        unplayedStrata.add(new Stratum(null, 4,vibs));
+        unplayedStrata.add(new Stratum(null, 5,vibs, rand));
+        unplayedStrata.add(new Stratum(null, 4,vibs, rand));
 
+        ArrayList<Cue> cues = new ArrayList<Cue>();
         
+
+        cues.add(new Cue(this,30){
+            void run(){
+
+            }
+        });
+
+        Collections.sort(cues);
 
         int tl = 0;
         int tlSeed = -1;
         while (time < 60 * 4) {
+            while(cues.size() > 0 && cues.get(0).startTime <= time){
+                cues.get(0).run(); 
+                cues.remove(0);
+            }
             int[][] notes = seq.getChords();
             int sNum = 0;
             if (tl % timelineChangeFreq == 0)
@@ -185,8 +198,8 @@ public class Piece {
             tl++;
             for (int stratum = 0; stratum < strata.size(); stratum++) {
                 int[][] chords = strata.get(stratum).chords;
-                realizeChords(chords, notes, time, strata.get(stratum).synth, ww, rand, pan, seq.TET, strata.get(stratum).target * seq.TET, timeMode,
-                        onsetsPerTimeline, progsPerTimeline, stratum + tlSeed, pulses);// rand.nextInt()
+                realizeChords(chords, notes, time, strata.get(stratum).synth, ww, rand, pan, seq.TET, timeMode,
+                strata.get(stratum), onsetsPerTimeline, progsPerTimeline, stratum + tlSeed, pulses);// rand.nextInt()
                 sNum++;
             }
             switch (timeMode) {
@@ -266,18 +279,19 @@ public class Piece {
      * Parameters specific to mode 1:
      * int numOfOnsets, int numOfProgressions, int seed
      */
+    public static double chordVolScalar = 0.1;
     public void realizeChords(int[][] chords, int[][] notes, double time, Synth synth, WaveWriter ww, Random rand,
-            double[] pan, int tet, int target, int timeMode, int numOfOnsets, int numOfProgressions, int seed, int pulses) {
+            double[] pan, int tet, int timeMode, Stratum strat, int numOfOnsets, int numOfProgressions, int seed, int pulses) {
 
         switch (timeMode) {
             case 0:
                 for (int n = 0; n < chords.length; n++) {
                     for (int i = 0; i < chords[n].length; i++) {
-                        synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] / (double) tet), 0.01, pan);
+                        synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] / (double) tet), chordVolScalar * strat.vol(time), pan);
                         time += 1 / 10.0;
                     }
                 }
-                advanceChord(chords, notes, tet, target);
+                advanceChord(chords, notes, tet, strat.getTarget(time) * tet);
                 break;
             case 1:
                 // inputs
@@ -304,14 +318,14 @@ public class Piece {
                             .get(chordIndex); chordMemberIndex++) {
                         int note = chords[boardIndex][chordMemberIndex % chords[boardIndex].length];
                         synth.writeNote(ww.df, time + (onsets.get(onsetIndex) / 10.0),
-                                c0Freq * Math.pow(2, note / (double) tet), 0.01, pan);
+                                c0Freq * Math.pow(2, note / (double) tet), chordVolScalar * strat.vol(time), pan);
                         onsetIndex++;
                     }
 
                     boardIndex++;
                     chordIndex++;
                     if (boardIndex == chords.length) {
-                        advanceChord(chords, notes, tet,target);
+                        advanceChord(chords, notes, tet,strat.getTarget(time) * tet);
                         boardIndex = 0;
                     }
                 }
@@ -327,11 +341,11 @@ public class Piece {
                             if (osInd % 2 == 1)
                                 note = comp[member];
                             synth.writeNote(ww.df, time + (onsets.get(osInd) / 10.0) + i * pulses / 10.0,
-                                    c0Freq * Math.pow(2, note / (double) tet), 0.01, pan);
+                                    c0Freq * Math.pow(2, note / (double) tet), chordVolScalar * strat.vol(time), pan);
                         }
                     }
                 }
-                advanceChord(chords, notes, tet, target);
+                advanceChord(chords, notes, tet, strat.getTarget(time) * tet);
                 break;
         }
 

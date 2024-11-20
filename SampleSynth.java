@@ -5,8 +5,7 @@
  * @author (your name)
  * @version (a version number or a date)
  */
-public class SampleSynth implements Synth
-{
+public class SampleSynth implements Synth {
     public double[] sig;
     public double f2;
     public int type;
@@ -14,111 +13,112 @@ public class SampleSynth implements Synth
     /**
      * Constructor for objects of class SampleSynth
      */
-    public SampleSynth(int sampleNumber)
-    {
+    public SampleSynth(int sampleNumber) {
         type = sampleNumber;
-        switch(sampleNumber){
+        switch (sampleNumber) {
             case 0:
-            f2 = 1762;
-            sig = ReadSound.readSoundDoubles("1.wav"); // xylo oct 7 and 6
-            break;
+                f2 = 1762;
+                sig = ReadSound.readSoundDoubles("1.wav"); // xylo oct 7 and 6
+                break;
             case 1:
-            f2 = 1327;
-            sig = ReadSound.readSoundDoubles("2.wav"); // piano
-            break;
+                f2 = 1327;
+                sig = ReadSound.readSoundDoubles("2.wav"); // piano
+                break;
             case 2:
-            f2 = 626;
-            sig = ReadSound.readSoundDoubles("3.wav");//unfiltered chime, octavve 5 and 6
-            break;
+                f2 = 626;
+                sig = ReadSound.readSoundDoubles("3.wav");// unfiltered chime, octavve 5 and 6
+                break;
             case 3:
-            f2 = 626;
-            sig = ReadSound.readSoundDoubles("4.wav"); //filtered chime oct 4 ok oc 5 good
-            break;
+                f2 = 626;
+                sig = ReadSound.readSoundDoubles("4.wav"); // filtered chime oct 4 ok oc 5 good
+                break;
             case 4:
-            f2 = 626;
-            sig = ReadSound.readSoundDoubles("5.wav");//nice percussive chime sound oct 5
-            break;
+                f2 = 626;
+                sig = ReadSound.readSoundDoubles("5.wav");// nice percussive chime sound oct 5
+                break;
             case 5:
-            f2 = 172;
-            sig = ReadSound.readSoundDoubles("6.wav");
-            break;
+                f2 = 172;
+                sig = ReadSound.readSoundDoubles("6.wav");
+                break;
             case 6:
-            f2 = 172;
-            sig = ReadSound.readSoundDoubles("7.wav");//nice version of church bell
-            break;
+                f2 = 172;
+                sig = ReadSound.readSoundDoubles("7.wav");// nice version of church bell
+                break;
             case 7:
-            f2 = 112;
-            sig = ReadSound.readSoundDoubles("8.wav");//low piano
-            break;
+                f2 = 112;
+                sig = ReadSound.readSoundDoubles("8.wav");// low piano
+                break;
             case 8:
-            f2 = 2795;
-            sig = ReadSound.readSoundDoubles("9.wav");//original chime sound oct 6 and 7
-            break;
+                f2 = 2795;
+                sig = ReadSound.readSoundDoubles("9.wav");// original chime sound oct 6 and 7
+                break;
             case 9:
-            f2 = 2795;
-            sig = ReadSound.readSoundDoubles("10.wav");//processed chime sound oct 7 sound good
-            break;
+                f2 = 2795;
+                sig = ReadSound.readSoundDoubles("10.wav");// processed chime sound oct 7 sound good
+                break;
             case 10:
-            f2 = 2795;
-            sig = ReadSound.readSoundDoubles("11.wav");//variant w/ delay attack
-            break;
+                f2 = 2795;
+                sig = ReadSound.readSoundDoubles("11.wav");// variant w/ delay attack
+                break;
             case 11:
-            f2 = 1760;
-            sig = ReadSound.readSoundDoubles("12.wav");//filtered xylo oct 6 ok
-            break;
+                f2 = 1760;
+                sig = ReadSound.readSoundDoubles("12.wav");// filtered xylo oct 6 ok
+                break;
             case 12:
-            f2 = 627;
-            sig = ReadSound.readSoundDoubles("13.wav");//filtered xylo oct 6 ok
-            break;
+                f2 = 627;
+                sig = ReadSound.readSoundDoubles("13.wav");// filtered xylo oct 6 ok
+                break;
             case 13:
-            f2 = 394;
-            sig = ReadSound.readSoundDoubles("14.wav");//low xylo oct 4 and 3
-            break;
+                f2 = 394;
+                sig = ReadSound.readSoundDoubles("14.wav");// low xylo oct 4 and 3
+                break;
             case 14:
-            f2 = 264;
-            sig = ReadSound.readSoundDoubles("16.wav");//low vibs oct 4
-            break;
+                f2 = 264;
+                sig = ReadSound.readSoundDoubles("16.wav");// low vibs oct 4
+                break;
             case 15:
-            f2 = 351;
-            sig = ReadSound.readSoundDoubles("17.wav");//low vibs oct 4 or 3
-            break;
+                f2 = 351;
+                sig = ReadSound.readSoundDoubles("17.wav");// low vibs oct 4 or 3
+                break;
             case 16:
-            f2 = 176;
-            sig = ReadSound.readSoundDoubles("vibs/vib53.wav");//low vibs oct 4 or 3
-            break;
+                f2 = 176;
+                sig = ReadSound.readSoundDoubles("vibs/vib53.wav");// low vibs oct 4 or 3
+                break;
             case 17:
-            f2 = 224;
-            sig = ReadSound.readSoundDoubles("18.wav");//drone metallic swell A3
-            break;
+                f2 = 224;
+                sig = ReadSound.readSoundDoubles("18.wav");// drone metallic swell A3
+                break;
         }
     }
 
-    public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan){
-        //if(type != 17)
-            //return;
+    public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan) {
+        // if(type != 17)
+        // return;
         double f1 = freq;
-        double[] processed = new double[(int)(sig.length * f2 / f1)];
-        int startFrame = (int)Math.rint(time * WaveWriter.SAMPLE_RATE);
-        for(int i = 0; i < processed.length && i < frames[0].length; i++){
+        double[] processed = new double[(int) (sig.length * f2 / f1)];
+        int startFrame = (int) Math.rint(time * WaveWriter.SAMPLE_RATE);
+        if (vol > 0.99)
+            System.out.println("VOL:" + vol);
+        for (int i = 0; i < processed.length && i < frames[0].length; i++) {
             double exInd = i * f1 / f2;
-            int index = (int)exInd;
+            int index = (int) exInd;
             double fract = exInd - index;
             double frame1 = sig[index];
             double frame2 = frame1;
-            if(index + 1 < sig.length)
+            if (index + 1 < sig.length)
                 frame2 = sig[index + 1];
-            double frame = frame1 * (1-fract) + frame2 * fract;
+            double frame = frame1 * (1 - fract) + frame2 * fract;
             frame *= vol;
-            for(int chan = 0; chan < pan.length; chan++)
-                try{
+            for (int chan = 0; chan < pan.length; chan++)
+                try {
                     frames[chan][i + startFrame] += pan[chan] * frame;
-                }catch(Exception e){
+                } catch (Exception e) {
                     System.out.println(e);
                 }
         }
     }
 
-    public static void testSample(){
+    public static void testSample() {
         Synth synth = new SampleSynth(16);
         WaveWriter ww = new WaveWriter("test");
 
@@ -128,7 +128,7 @@ public class SampleSynth implements Synth
 
         for (int i = 0; i < sound[0].length; i++) {
             max = Math.max(max, Math.abs(sound[0][i]));
-            
+
         }
 
         for (int i = 0; i < sound[0].length; i++) {
@@ -149,8 +149,8 @@ public class SampleSynth implements Synth
         }
 
         double[] filtered = new double[sound[0].length];
-        double[] freqs = new double[] { 1762,4829,6231};
-        double[] amps = new double[] { 1,0.5,0.25,.125,0.0625,0.03125};
+        double[] freqs = new double[] { 1762, 4829, 6231 };
+        double[] amps = new double[] { 1, 0.5, 0.25, .125, 0.0625, 0.03125 };
         for (int n = 0; n < 5; n++) {
             for (int j = 0; j < freqs.length; j++) {
                 double f = freqs[j];
@@ -162,13 +162,13 @@ public class SampleSynth implements Synth
             unfiltered = filtered;
         }
 
-        //filtered = unfiltered;
+        // filtered = unfiltered;
 
         double max = Double.MIN_VALUE;
 
         for (int i = 0; i < filtered.length; i++) {
             max = Math.max(max, Math.abs(filtered[i]));
-            
+
         }
 
         for (int i = 0; i < filtered.length; i++) {
@@ -178,7 +178,7 @@ public class SampleSynth implements Synth
     }
 
     public static void main(String[] args) {
-       // testFilteredChime();
-       testSample();
+        // testFilteredChime();
+        testSample();
     }
 }
