@@ -63,7 +63,7 @@ public class GUI
 
         envs = new ArrayList<Envelope>();
         JFrame frame = new JFrame("Envelope Design");
-        frame.setBounds(0,0,width,500);
+        frame.setBounds(0,0,width,600);
 
         JMenuBar bar =  new JMenuBar();
         JMenu fileMenu = new JMenu("File");
@@ -86,29 +86,8 @@ public class GUI
                     chooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
                     chooser.showOpenDialog(frame);
                     file = chooser.getSelectedFile();
-                    Envelope env = null;
-                    TextIO.readFile(file.getPath());
-                    try{
-                        while(true){
-                            String x = TextIO.getln();
-                            if(x.equals("ENV")){
-                                if(env != null){
-                                    envs.add(env);
-                                }
-                                env = new Envelope();
-                                env.file = file;
-                                env.coords = new ArrayList<int[]>();
-                                //env.coords.add(new int[]{0,800});
-                                //env.coords.add(new int[]{800,800});
-                                x = TextIO.getln();
-                            }
-                            String y = TextIO.getln();
-                            env.coords.add(new int[]{Integer.parseInt(x),Integer.parseInt(y)});
-                        }
-                    }
-                    catch(Exception ex){}
-                    envs.add(env);
-                    selectedEnv = env;
+                    envs = GUI.open(file);
+                    selectedEnv = envs.get(0);
                 }
             });
         JMenuItem saveItem = new JMenuItem("Save");
@@ -150,6 +129,25 @@ public class GUI
         fileMenu.add(openItem);
         fileMenu.add(saveItem);
         bar.add(fileMenu);
+
+        JMenu envMenu = new JMenu("Envelope");
+
+        JMenuItem sinusoid = new JMenuItem("Sinusoid");
+        sinusoid.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectedEnv.coords = new ArrayList<int[]>();
+                double freq = 1/(Math.random() * 20 + 10);
+                double phase = Math.random() * Math.PI;
+                for(int x = 0; x < 100 * 60 * 15; x++){
+                    selectedEnv.coords.add(new int[]{x,(int)(500 - 500*
+                        (Math.sin(phase + freq * 2 * Math.PI * x / 100.0) + 1)/2.0
+                        )});
+                }
+            }
+        });
+        envMenu.add(sinusoid);
+        bar.add(envMenu);
 
         frame.setJMenuBar(bar);
         Color[] colors = new Color[]{Color.RED, Color.BLUE, Color.GREEN,Color.MAGENTA,Color.ORANGE,Color.PINK,Color.CYAN,Color.YELLOW};
@@ -366,5 +364,52 @@ public class GUI
             });
 
         frame.setVisible(true);
+    }
+
+
+    public static ArrayList<Envelope> open(File file){
+        ArrayList<Envelope> envs = new ArrayList<Envelope>();
+        Envelope env = null;
+                    TextIO.readFile(file.getPath());
+                    try{
+                        while(true){
+                            String x = TextIO.getln();
+                            if(x.equals("ENV")){
+                                if(env != null){
+                                    env.times = new double[env.coords.size()];
+                                    env.values = new double[env.coords.size()];
+                                    for(int i = 0; i < env.coords.size(); i++){
+                                        int[] coord = env.coords.get(i);
+                                        env.times[i] = coord[0] / (100.0);
+                                        env.values[i] = (500 - coord[1]) / 500.0;
+                                    }
+                                    envs.add(env);
+                                }
+                                env = new Envelope();
+                                env.file = file;
+                                env.coords = new ArrayList<int[]>();
+                                //env.coords.add(new int[]{0,800});
+                                //env.coords.add(new int[]{800,800});
+                                x = TextIO.getln();
+                            }
+                            String y = TextIO.getln();
+                            env.coords.add(new int[]{Integer.parseInt(x),Integer.parseInt(y)});
+                        }
+                    }
+                    catch(Exception ex){}
+                    env.times = new double[env.coords.size()];
+                    env.values = new double[env.coords.size()];
+                    for(int i = 0; i < env.coords.size(); i++){
+                        int[] coord = env.coords.get(i);
+                        env.times[i] = coord[0] / (100.0);
+                        env.values[i] = (500 - coord[1]) / 500.0;
+                    }
+                    envs.add(env);
+                    return envs;
+                    
+    }
+
+    public static void main(String[] args) {
+        new GUI();
     }
 }

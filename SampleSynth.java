@@ -1,3 +1,4 @@
+import java.util.Arrays;
 
 /**
  * Write a description of class SampleSynth here.
@@ -9,6 +10,7 @@ public class SampleSynth implements Synth {
     public double[] sig;
     public double f2;
     public int type;
+    public double[] wetSig;
 
     /**
      * Constructor for objects of class SampleSynth
@@ -89,24 +91,49 @@ public class SampleSynth implements Synth {
                 sig = ReadSound.readSoundDoubles("18.wav");// drone metallic swell A3
                 break;
         }
+
+        double[] cathedral = ReadSound.readSoundDoubles("cathedral.wav");
+        sig = Arrays.copyOf(sig, sig.length + cathedral.length);
+        cathedral = Arrays.copyOf(cathedral, sig.length);
+        wetSig = FFT2.convAsImaginaryProduct(sig, cathedral);
+        wetSig = Arrays.copyOf(wetSig, sig.length);
+        double sMax = 0;
+        double wMax = 0;
+        for(int i = 0; i < wetSig.length; i++){
+            sMax = Math.max(sMax, Math.abs(sig[i]));
+            wMax = Math.max(wMax, Math.abs(wetSig[i]));
+        }
+        for(int i = 0; i < wetSig.length; i++){
+            sig[i] /= sMax;
+            wetSig[i] /= wMax;
+        }
     }
 
     public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan) {
         // if(type != 17)
         // return;
+
+        double[] reverb = new double[sig.length];
+        for(int i = 0; i < reverb.length; i++){
+            reverb[i] = wetSig[i] * (1-vol) + sig[i] * vol;
+        }
+
+        for(int i = 0; i < 100; i++)
+            reverb[reverb.length - 1 - i] *= i / 100.0;
+
+        
         double f1 = freq;
-        double[] processed = new double[(int) (sig.length * f2 / f1)];
+        double[] processed = new double[(int) (reverb.length * f2 / f1)];
         int startFrame = (int) Math.rint(time * WaveWriter.SAMPLE_RATE);
-        if (vol > 0.99)
-            System.out.println("VOL:" + vol);
+
         for (int i = 0; i < processed.length && i < frames[0].length; i++) {
             double exInd = i * f1 / f2;
             int index = (int) exInd;
             double fract = exInd - index;
-            double frame1 = sig[index];
+            double frame1 = reverb[index];
             double frame2 = frame1;
-            if (index + 1 < sig.length)
-                frame2 = sig[index + 1];
+            if (index + 1 < reverb.length)
+                frame2 = reverb[index + 1];
             double frame = frame1 * (1 - fract) + frame2 * fract;
             frame *= vol;
             for (int chan = 0; chan < pan.length; chan++)
