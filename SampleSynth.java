@@ -112,10 +112,11 @@ public class SampleSynth implements Synth {
     public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan) {
         // if(type != 17)
         // return;
-
+double globalReverb = Piece.reverbEnv.getValue(time);
+        double mix = (1-globalReverb) + globalReverb * vol;//max reverb is 50% mix
         double[] reverb = new double[sig.length];
         for(int i = 0; i < reverb.length; i++){
-            reverb[i] = wetSig[i] * (1-vol) + sig[i] * vol;
+            reverb[i] = wetSig[i] * (1-mix) + sig[i] * mix;
         }
 
         for(int i = 0; i < 100; i++)

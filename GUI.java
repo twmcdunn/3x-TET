@@ -147,6 +147,15 @@ public class GUI
             }
         });
         envMenu.add(sinusoid);
+
+        JMenuItem deleteEnv = new JMenuItem("deleteEnv");
+        deleteEnv.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                envs.remove(selectedEnv);
+            }
+        });
+        envMenu.add(deleteEnv);
         bar.add(envMenu);
 
         frame.setJMenuBar(bar);

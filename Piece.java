@@ -137,6 +137,7 @@ Random rand;
 Sequencer seq;
 WaveWriter ww;
 double time;
+static Envelope reverbEnv;
     public void parsimoniousTexture1() {
         boolean testOctave = false;
         int octToTest = 4;
@@ -150,6 +151,7 @@ double time;
         int progsPerTimeline = 1; // a subtle value. 2 makes harmonic rhythm faster (anything higher leads to
                                   // repeated notes)
         int onsetsPerTimeline = 5;
+        onsetsPerTimeline = 1;
         int timelineChangeFreq = 1; // how often the timeline changes
 
         probOfHomorhythm = 0;// probability that strata will use the same timeline
@@ -166,6 +168,25 @@ double time;
 
         strata = new ArrayList<Stratum>();
         ArrayList<Envelope> envs = GUI.open(new File("envs.txt"));
+        /*
+         * envs by index
+         * 0 - oct 7 vol
+         * 1 - oct 6 vol
+         * 2 - oct 4 vol 
+         * 3 - oct 5 vol
+         * 4 - oct 5 vol
+         * 5 - oct 7 vol
+         * 6 - oct 6 vol
+         * 7 - oct 6 vol
+         * 8 - onsets per timeline (1 - 15)
+         */
+        ArrayList<Envelope> envs1 = GUI.open(new File("envs1.txt"));
+        /*
+         * envs by index
+         * 0 - global reverb
+         */
+        reverbEnv = envs1.get(0);
+
         strata.add(new Stratum(c, oct, new SampleSynth(8), rand, envs.get(0)));
 
          time = 0;
@@ -297,9 +318,10 @@ double time;
                 case 1:
                     probOfNewVoice = 8 / 160.0;// over the course of 4 minutes all voices enter
                     double probOfNewOnset = 5 / 160.0;// 5 out of 160 progressions (over 4 minutes)
-                    if (onsetsPerTimeline < 10 && rand.nextDouble() < probOfNewOnset) {
+                    if (false && onsetsPerTimeline < 10 && rand.nextDouble() < probOfNewOnset) {
                         onsetsPerTimeline++;
                     }
+                    onsetsPerTimeline = (int)(envs.get(8).getValue(time) * 14) + 1;
                     double probOfNewRep = 5 / 160.0;
                     if (timelineChangeFreq < 5 && rand.nextDouble() < probOfNewRep) {
                         timelineChangeFreq++;

@@ -2,13 +2,53 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Vibs implements Synth {
-    ArrayList<double[]> samples;
+    ArrayList<double[]> samples, wetSigs;
 
     public Vibs() { // oct 4 and 5
         samples = new ArrayList<double[]>();
         for (int i = 53; i <= 89; i++) {
             samples.add(Arrays.copyOf(ReadSound.readSoundDoubles("vibs/vib" + i + ".wav"), WaveWriter.SAMPLE_RATE * 3));
         }
+
+        wetSigs = new ArrayList<double[]>();
+        for (int n = 0; n < samples.size(); n++) {
+            double[] sig = samples.get(n);
+
+            // add decay envelope
+            for (int i = 0; i < sig.length; i++) {
+                double env = i / (double) ((int) (sig.length));
+                env = Math.pow(10, -env * 3);
+                if ((int) (sig.length) - i < 100)
+                    env *= ((int) (sig.length) - i) / 100.0;
+                sig[i] *= env;
+            }
+            // create wet signal
+            double[] cathedral = ReadSound.readSoundDoubles("cathedral.wav");
+            sig = Arrays.copyOf(sig, sig.length + cathedral.length);
+            cathedral = Arrays.copyOf(cathedral, sig.length);
+            double[] wetSig = FFT2.convAsImaginaryProduct(sig, cathedral);
+            wetSig = Arrays.copyOf(wetSig, sig.length);
+
+            // normalize both wet and dry
+            double sMax = 0;
+            double wMax = 0;
+            for (int i = 0; i < wetSig.length; i++) {
+                sMax = Math.max(sMax, Math.abs(sig[i]));
+                wMax = Math.max(wMax, Math.abs(wetSig[i]));
+            }
+            for (int i = 0; i < wetSig.length; i++) {
+                sig[i] /= sMax;
+                wetSig[i] /= wMax;
+            }
+
+            // store wet sig in arraylist
+            wetSigs.add(wetSig);
+
+            //replace sig
+            samples.remove(n);
+            samples.add(n,sig);
+        }
+        
     }
 
     public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan) {
@@ -23,6 +63,11 @@ public class Vibs implements Synth {
         midiNum = Math.min(midiNum, samples.size() - 1);
 
         double[] sig = samples.get(midiNum);
+        double[] wet = wetSigs.get(midiNum);
+        double globalReverb = Piece.reverbEnv.getValue(time);
+        double mix = (1-globalReverb) + globalReverb * vol;
+        for(int i = 0; i < sig.length; i++)
+            sig[i] = mix * sig[i] + (1-mix)*wet[i];
 
         // double[] processed = new double[(int)(sig.length / freqRatio)];
         int startFrame = (int) Math.rint(time * WaveWriter.SAMPLE_RATE);
