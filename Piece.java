@@ -1,6 +1,7 @@
 import java.util.Random;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -21,27 +22,15 @@ public class Piece {
     // c4 = 75 ss
 
     public Piece() {
-        /*
-         * WaveWriter ww = new WaveWriter("15TET");
-         * buildMatrices();
-         * 
-         * writeStratum(ww, new Random(1),mode5c,1,75,90,76,new
-         * double[]{1},generateMatrix(new int[]{0,2,4,7}, 0.98, 0.02, 9, true));
-         * writeStratum(ww, new Random(2),mode5c,6,75 + 15 * 1,90 + 15 * 1,76 + 15 *
-         * 1,new double[]{0,1},generateMatrix(new int[]{0,2,4,7}, 0.98, 0.2, 9, true));
-         * writeStratum(ww, new Random(3),mode5c,11,75 + 15 * 2,90 + 15 * 2,76 + 15 *
-         * 2,new double[]{0,0,1},generateMatrix(new int[]{0,2,4,7}, 0.98, 0.02, 9,
-         * true));
-         * writeStratum(ww, new Random(4),mode5c,1,75 + 15 * 3,90 + 15 * 3,76 + 15 *
-         * 3,new double[]{0,0,0,1},generateMatrix(new int[]{0,2,4,7}, 0.98, 0.02, 9,
-         * true));
-         * writeStratum(ww, new Random(5),mode5c,6,75 + 15 * -1,90 + 15 * -1,76 + 15 *
-         * -1,new double[]{0,0,0,0,1},generateMatrix(new int[]{0,2,4,7}, 0.98, 0.02, 9,
-         * true));
-         * ww.render();
+       /*
+        ww = new WaveWriter("FORE GROUND TEST");
+        foreground();
+        ww.render(1);
          */
-        // System.out.println(closestOct(6,0,12));
+
         parsimoniousTexture1();
+
+
         // testChordProgression();
         // onsetProbabilities(15);
     }
@@ -51,7 +40,10 @@ public class Piece {
         new Piece();
     }
 
-    /*
+    
+
+    public void testChordProgression() {
+        /*
      * Modes of limited trans in 21 TET
      * 0 1 5 7 8 12 14 15 19 Contains [0,5,12] [7,14,19]
      * 0 1 3 7 8 10 14 15 17 Contains [3,8,15] [10,17,1]
@@ -74,8 +66,6 @@ public class Piece {
      * [3,8,12,15,0] [10,14,17,1,5]
      * 0 3 5 7 10 0 2 4 7 9
      */
-
-    public void testChordProgression() {
         int[][] chords = new int[][] {
 
                 { 0, 5, 12, 8,// 2
@@ -122,9 +112,63 @@ public class Piece {
         // {11,0,5,3?} {1,6,10,13} {3,8,12,0} {13,2,7,5?} <CHORD PROGRESSION (T-5)
         // should be 8 and 10, but modified for horizontal relations
 
-        // different approach (second half is T5 of first)
+        // different approach (second half is T5 of first) //switch last two chords in both progressions
         // {6,11,0,3} {1,5,10,13} T5 {6,10,0,3} {1,5,11,13}
         // {11,0,5,3} {6,10,1,13} {6,10,0,13} {11,1,5,8}
+        Synth[] synths = new Synth[]{new SustainedSynth(2,0.35),new SustainedSynth(0,0.35),new SustainedSynth(8,0.35),new SustainedSynth(15,0.35)};
+        int chord[] = new int[]{6 + 15 * 4,11+ 15 * 4,0+ 15 * 5,3+ 15 * 5};
+        chord = new int[]{6 + 15 * 4,0 + 15 * 5,3 + 15 * 5,11+ 15 * 5};
+        for(int n = 0; n < 4; n++){
+            int note = chord[n];
+            synths[n].writeNote(ww.df, 91, c0Freq * Math.pow(2,note / 15.0), 0, new double[]{1});
+        }
+        
+      
+        chord = new int[]{5 + 15 * 4,10 + 15 * 4,1 + 15 * 5,13+ 15 * 5};
+        chord = new int[]{10 + 15 * 4,1 + 15 * 5,5 + 15 * 5,13+ 15 * 5};
+        for(int n = 0; n < 4; n++){
+            int note = chord[n];
+            
+            synths[n].writeNote(ww.df, 91 + 6, c0Freq * Math.pow(2,note / 15.0), 1, new double[]{1});
+        }
+        chord = new int[]{6 + 15 * 4,10 + 15 * 4,3 + 15 * 5,0+ 15 * 6};
+        chord = new int[]{13 + 15 * 4,1 + 15 * 5,5 + 15 * 5,11+ 15 * 5};
+        for(int n = 0; n < 4; n++){
+            int note = chord[n];
+            synths[n].writeNote(ww.df, 91 + 12, c0Freq * Math.pow(2,note / 15.0), 0, new double[]{1});
+        }
+        chord = new int[]{6 + 15 * 4,0 + 15 * 5,3+ 15 * 5,10 + 15 * 5};
+        for(int n = 0; n < 4; n++){
+            int note = chord[n];
+            synths[n].writeNote(ww.df, 91 + 18, c0Freq * Math.pow(2,note / 15.0), 1, new double[]{1});
+        }
+
+        //
+        Synth synth = new MultiConvolutionSynth(5,0.35);//new ReverseSynth(0.5);//SustainedSynth(-1,0.01);//16
+        chord = new int[]{5 + 15 * 4,0 + 15 * 5,3 + 15 * 5,11+ 15 * 5};
+        for(int n = 0; n < 4; n++){
+            int note = chord[n];
+            synth.writeNote(ww.df, 136, c0Freq * Math.pow(2,note / 15.0), 1, new double[]{1});
+        }
+        
+    
+        chord = new int[]{10 + 15 * 4,1 + 15 * 5,6 + 15 * 5,13+ 15 * 5};
+        for(int n = 0; n < 4; n++){
+            int note = chord[n];
+            synth.writeNote(ww.df, 136 + 6, c0Freq * Math.pow(2,note / 15.0), 1, new double[]{1});
+        }
+
+        chord = new int[]{8 + 15 * 4,1 + 15 * 5,5 + 15 * 5,11+ 15 * 5};
+        for(int n = 0; n < 4; n++){
+            int note = chord[n];
+            synth.writeNote(ww.df, 136 + 12, c0Freq * Math.pow(2,note / 15.0), 1, new double[]{1});
+        }
+        chord = new int[]{6 + 15 * 4,0 + 15 * 5,13+ 15 * 4,10 + 15 * 5};
+        for(int n = 0; n < 4; n++){
+            int note = chord[n];
+            synth.writeNote(ww.df, 136 + 18, c0Freq * Math.pow(2,note / 15.0), 0, new double[]{1});
+        }
+
 
     }
 
@@ -133,7 +177,8 @@ public class Piece {
 public ArrayList<Stratum> unplayedStrata;
 public ArrayList<Stratum> strata;
 int timeMode;
-Random rand;
+static Random rand;
+static double altChordProb;
 Sequencer seq;
 WaveWriter ww;
 double time;
@@ -141,7 +186,7 @@ static Envelope reverbEnv;
     public void parsimoniousTexture1() {
         boolean testOctave = false;
         int octToTest = 4;
-         seq = new Sequencer(1);
+        seq = new Sequencer(0);
 
          timeMode = 1;
         // 0 - fast even rhythms 1 - probiblistic MER based on TET
@@ -166,6 +211,8 @@ static Envelope reverbEnv;
             oct = octToTest;
         int[][] c = populateChords(seq, rand, oct * seq.TET, timeMode);// 6
 
+        seq.alternateChords = new int[][]{{1,6,10,0},{11,6,5,0}};
+
         strata = new ArrayList<Stratum>();
         ArrayList<Envelope> envs = GUI.open(new File("envs.txt"));
         /*
@@ -184,6 +231,9 @@ static Envelope reverbEnv;
         /*
          * envs by index
          * 0 - global reverb
+         * 1 - altChordProb envelop (controls the probibility that seq.altChord is played, i.e. something to accommpany foreground)
+         * 2 - altchordProbDist env (used for generating probibility distribution for which of the alt chords to choose)
+         * 3 - used by sutstained synth (vol 1 = backward and vol 0 = fowarad)
          */
         reverbEnv = envs1.get(0);
 
@@ -195,7 +245,7 @@ static Envelope reverbEnv;
 
         double[] pan = new double[] { 1 };
         unplayedStrata = new ArrayList<Stratum>();
-        unplayedStrata.add(new Stratum(null, 7, new SampleSynth(0), rand, envs.get(5)));
+        unplayedStrata.add(new Stratum(null, 7, new SampleSynth(0), rand, envs.get(5)));//0
         unplayedStrata.add(new Stratum(null, 6, new SampleSynth(0), rand, envs.get(1)));
         unplayedStrata.add(new Stratum(null, 6, new SampleSynth(2), rand, envs.get(6)));
         unplayedStrata.add(new Stratum(null, 5, new SampleSynth(2), rand, envs.get(3)));
@@ -206,6 +256,8 @@ static Envelope reverbEnv;
         // strata.remove(0);
         unplayedStrata.add(new Stratum(null, 5, vibs, rand, envs.get(4)));
         unplayedStrata.add(new Stratum(null, 4, vibs, rand, envs.get(2)));
+
+        unplayedStrata.add(strata.get(0));//for the second exposition (index)
 
         ArrayList<Cue> cues = new ArrayList<Cue>();
 
@@ -252,20 +304,8 @@ static Envelope reverbEnv;
                 piece.probOfHomorhythm = 1;
                 piece.changeTimeline = true;
             }
-        }.initialize(this, 3 * 60));
-        cues.add(new Cue() {
-            void run() {
-                piece.probOfHomorhythm = 0;
-                piece.changeTimeline = false;
-            }
-        }.initialize(this, 3*60 + 3));
+        }.initialize(this, 2*60 + 5));
 
-        cues.add(new Cue() {
-            void run() {
-                piece.probOfHomorhythm = 1;
-                piece.changeTimeline = true;
-            }
-        }.initialize(this, 3 * 60 + 13));
         cues.add(new Cue() {
             void run() {
                 piece.probOfHomorhythm = 0;
@@ -273,17 +313,124 @@ static Envelope reverbEnv;
                 piece.realizeDrone(
                     piece.populateChords(piece.seq, piece.rand, 60, 0), new SampleSynth(17), piece.seq.TET, piece.ww, piece.time,0.5,new double[]{1});
             }
-        }.initialize(this, 3*60 + 16));
+        }.initialize(this, 2*60 + 8));
+
+        cues.add(new Cue() {
+            void run() {
+                piece.probOfHomorhythm = 1;
+                piece.changeTimeline = true;
+            }
+        }.initialize(this, 2*60 + 13));
+
+        cues.add(new Cue() {
+            void run() {
+                piece.probOfHomorhythm = 0;
+                piece.changeTimeline = false;
+                piece.realizeDrone(
+                    piece.populateChords(piece.seq, piece.rand, 60, 0), new SampleSynth(17), piece.seq.TET, piece.ww, piece.time,0.5,new double[]{1});
+            }
+        }.initialize(this, 2*60 + 16));
+
+        //another 15 tet progression here
+        cues.add(new Cue() {
+            void run() {
+                seq.alternateChords = new int[][] { { 11, 1, 5, 10 }, { 1, 6, 10, 0 } };
+            }
+        }.initialize(this, 2 * 60 + 11));
+
+        cues.add(new Cue() {
+            void run() {
+                piece.probOfHomorhythm = 1;
+                piece.changeTimeline = true;
+            }
+        }.initialize(this, 2*60 + 40));
+
+        cues.add(new Cue() {
+            void run() {
+                piece.probOfHomorhythm = 0;
+                piece.changeTimeline = false;
+                piece.realizeDrone(
+                    piece.populateChords(piece.seq, piece.rand, 60, 0), new SampleSynth(17), piece.seq.TET, piece.ww, piece.time,0.5,new double[]{1});
+                int[][] alt = piece.seq.alternateChords;
+                    piece.seq = new Sequencer(1);
+                    piece.seq.alternateChords = alt;
+                
+                }
+        }.initialize(this, 2*60 + 50));
+
+        cues.add(new Cue() {
+            void run() {
+               piece.strata = new ArrayList<Stratum>();
+                    piece.addStratum(6);
+            }
+        }.initialize(this, 2*60 + 52));
+
+        cues.add(new Cue() {
+            void run() {
+                piece.addStratum(5);
+            }
+        }.initialize(this, 3*60 + 17));
+
+        cues.add(new Cue() {
+            void run() {
+                piece.addStratum(0);
+            }
+        }.initialize(this, 3*60 + 32));
+
+
+        cues.add(new Cue() {
+            void run() {
+                piece.addStratum(1);
+            }
+        }.initialize(this, 3*60 + 47));
+
+        cues.add(new Cue() {
+            void run() {
+                piece.addStratum(2);
+            }
+        }.initialize(this, 4*60 + 2));
+
+
+        cues.add(new Cue() {
+            void run() {
+                piece.addStratum(3);
+            }
+        }.initialize(this, 4*60 + 7));
+        cues.add(new Cue() {
+            void run() {
+                piece.addStratum(7);
+            }
+        }.initialize(this, 4*60 + 12));
+        cues.add(new Cue() {
+            void run() {
+                piece.addStratum(4);
+            }
+        }.initialize(this, 4*60 + 17));
+        
 
         Collections.sort(cues);
 
         int tl = 0;
         int tlSeed = -1;
-        while (time < 60 * 4) {
+        while (time < 60 * 5) {
             while (cues.size() > 0 && cues.get(0).startTime <= time) {
                 cues.get(0).run();
                 cues.remove(0);
             }
+            System.out.println("TIME: " + time);
+
+            //update altchord values
+            altChordProb = envs1.get(1).getValue(time);
+            double altChordProbDistEnv = envs1.get(2).getValue(time) * (seq.alternateChords.length - 1);
+            seq.probDistOfAltChords = new double[seq.alternateChords.length];
+            double tot = 0;
+            for(int i = 0; i < seq.probDistOfAltChords.length; i++){
+                seq.probDistOfAltChords[i] = Math.abs(altChordProbDistEnv - i);
+                tot += seq.probDistOfAltChords[i];
+            }
+            for(int i = 0; i < seq.probDistOfAltChords.length; i++)
+                seq.probDistOfAltChords[i] /= tot;
+
             int[][] notes = seq.getChords();
             int sNum = 0;
             if (tl % timelineChangeFreq == 0 || changeTimeline)
@@ -350,8 +497,9 @@ static Envelope reverbEnv;
             }
         }
         System.out.println(seq.myGame);
+        foreground();
 
-        ww.render();
+        ww.render(1);//change this for 8 channels
     }
 
     public void addStratum(int ind){
@@ -403,7 +551,7 @@ strata.add(unplayedStrata.get(ind));
                         time += 1 / 10.0;
                     }
                 }
-                advanceChord(chords, notes, tet, strat.getTarget(time) * tet);
+                chords = advanceChord(chords, notes, tet, strat.getTarget(time) * tet);
                 break;
             case 1:
                 // inputs
@@ -438,7 +586,7 @@ strata.add(unplayedStrata.get(ind));
                     boardIndex++;
                     chordIndex++;
                     if (boardIndex == chords.length) {
-                        advanceChord(chords, notes, tet, strat.getTarget(time) * tet);
+                        chords = advanceChord(chords, notes, tet, strat.getTarget(time) * tet);
                         boardIndex = 0;
                     }
                 }
@@ -459,7 +607,7 @@ strata.add(unplayedStrata.get(ind));
                         }
                     }
                 }
-                advanceChord(chords, notes, tet, strat.getTarget(time) * tet);
+                chords = advanceChord(chords, notes, tet, strat.getTarget(time) * tet);
                 break;
         }
 
@@ -489,17 +637,24 @@ strata.add(unplayedStrata.get(ind));
         return onsets;
     }
 
-    public void advanceChord(int[][] chords, int[][] notes, int tet, int target) {
-        // progress to next chord
+    public int[][] advanceChord(int[][] chords, int[][] notes, int tet, int target) {
+       for(int i = 0; i < chords.length; i++)
+           if (chords[i].length != notes[i].length) {
+               chords[i] = Arrays.copyOf(chords[i], notes[i].length);
+           }
+
+        // progress to next chord (form chords to notes)
+        
+        ArrayList<Integer> chordReplaceIndexes = new ArrayList<Integer>();
         for (int n = 0; n < chords.length; n++) {
             boolean[] notesAreContained = new boolean[chords[n].length];
-            int chordReplaceIndex = -1;
+            
             for (int i = 0; i < chords[n].length; i++)
                 notesAreContained[i] = false;
             for (int i = 0; i < chords[n].length; i++) {
                 boolean chordNoteIsContained = false;
                 for (int j = 0; j < notes[n].length; j++) {
-                    if (notes[n][j] == chords[n][i] % tet) {
+                    if (notes[n][j] % tet == chords[n][i] % tet) {
                         chordNoteIsContained = true;
                         notesAreContained[j] = true;
                         break;
@@ -507,14 +662,21 @@ strata.add(unplayedStrata.get(ind));
                 }
                 if (!chordNoteIsContained) {
                     // chords[n][i] = -1;
-                    chordReplaceIndex = i;
-                    break;
+                    chordReplaceIndexes.add(i);
+                    //break;
                 }
             }
-            if (chordReplaceIndex == -1)
+            /*
+            if(chordReplaceIndexes.size() !=1)
+                    System.out.println("MISTAKE");
+                     */
+            if (chordReplaceIndexes.size() == 0)
                 continue;// why would the chord be identical?
+                
             for (int j = 0; j < notesAreContained.length; j++) {
                 if (!notesAreContained[j]) {
+                    int chordReplaceIndex = chordReplaceIndexes.get(0);
+                    chordReplaceIndexes.remove(0);
                     int note = closestOct(chords[n][chordReplaceIndex], notes[n][j], tet);
                     while (note - target > tet)
                         note -= tet;
@@ -525,6 +687,18 @@ strata.add(unplayedStrata.get(ind));
                 }
             }
         }
+        System.out.println(target +" " + chords[0][1] + " " + chords[0][2] + " " + chords[0][3] + " " + chords[0][0]);
+       //remove zero padding
+        for(int i = 0; i < chords.length; i++){
+            int n = 0;
+            for(n = chords[i].length - 1; n >= 0 && chords[i][n] == 0; n--){
+
+            }
+            n++;
+            chords[i] = Arrays.copyOf(chords[i], n);
+        }
+
+        return chords;
     }
 
     public int closestOct(int target, int pc, int tet) {
@@ -620,6 +794,7 @@ strata.add(unplayedStrata.get(ind));
         }
         // play popular note as close to A3 as possible
         int note = closestOct(tet * 3 + (int) Math.rint(tet * 9 / 12.0), popularNote, tet);
+        System.out.println("DRONE NOTE: " + note);
         synth.writeNote(ww.df, time, Math.pow(2, note / (double) tet) * c0Freq, vol, pan);
 
     }

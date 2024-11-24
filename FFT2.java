@@ -158,8 +158,8 @@ public class FFT2 {
     }
 
     public static void convTest() {
-        double[] sig1 = ReadSound.readSoundDoubles("15.wav");// "cathedral.wav");
-        sig1 = Arrays.copyOf(sig1, 48000 * 10);
+        double[] sig1 = ReadSound.readSoundDoubles("21.wav");// "cathedral.wav");
+        //sig1 = Arrays.copyOf(sig1, 48000 * 10);
         /*
          * float[][] frames = new float[1][WaveWriter.SAMPLE_RATE * 30];
          * Synth synth = new SampleSynth(5);
@@ -177,9 +177,9 @@ public class FFT2 {
         }
         */
 
-        double[] sig2 = ReadSound.readSoundDoubles("cathedral.wav");// "test.wav");
+        double[] sig2 = ReadSound.readSoundDoubles("20.wav");// "test.wav");
 
-        boolean pitchMatch = false;
+        boolean pitchMatch = true;
         if (pitchMatch)
             sig2 = matchPitch(sig1, sig2);
         if (sig1.length < sig2.length) {
@@ -198,10 +198,12 @@ public class FFT2 {
          */
 
         WaveWriter ww = new WaveWriter("convolution");
+double max = 0;
+        for(int i = 0; i < convSig.length; i++)
+            max = Math.max(Math.abs(convSig[i]),max);
 
         for (int i = 0; i < convSig.length; i++) {
-            ww.df[0][i] += 0.05 * convSig[i];
-            ww.df[1][i] += 0.05 * convSig[i];
+            ww.df[0][i] += convSig[i] / max;
         }
         ww.render(1);
     }

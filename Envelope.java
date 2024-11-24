@@ -249,6 +249,33 @@ public class Envelope
             }
             catch(Exception e){}
     }
+    
+    public void display(){
+
+        JPanel jp = new JPanel(){
+                // double[] myNormVals;
+                @Override
+                public void paint(Graphics g){
+                    g.setColor(Color.WHITE);
+                    g.fillRect(0,0,500,500);
+
+                    g.setColor(Color.BLACK);
+                    //duration = 10;
+                    for(double i = 0; i < 1; i += 1 / 500.0){
+                        double d = 500 * getValue(i);
+                        int x = (int)(500 *i / 1);
+                        g.fillOval( x, (int)(500 -  d), 3, 3);
+                    }
+
+                }
+            };
+        JFrame jf = new JFrame("ENVELOPE");
+        jf.setBounds(0,0,500,500);
+        jf.add(jp);
+        jf.setVisible(true);
+        jp.repaint();
+        //System.out.println(size());
+    }
 
     public void setDuration(double dur){
         duration = dur;
@@ -274,7 +301,7 @@ public class Envelope
             }
         }
         if(x1 == x2)
-            return values[0];
+            return y2;//values[0] ... maybe before it was a drawn env redundant X's indicated a mistake or trival case
 
         double m = (y1 - y2) / (x1 - x2);
         double b = y1 - m * x1;

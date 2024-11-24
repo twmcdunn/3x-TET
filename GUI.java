@@ -201,7 +201,7 @@ public class GUI
                         int sec = ((int)Math.rint(xView)) / (int)Math.rint(100 * scale);
                         g.setColor(Color.BLACK);
                         for(int i = (int)Math.rint(100 * scale) - offset; i < width; i+= (int)Math.rint(100 * scale)){
-                            g.drawString(sec + "''", i,10);
+                            g.drawString((sec+1) + "''", i,10);
                             sec++;
                         }
                     }

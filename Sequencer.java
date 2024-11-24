@@ -22,6 +22,8 @@ public class Sequencer {
     public ArrayList<int[][]> transformationMatrix;
     public int[][] triadDictionary;
     public int[][] modes;
+    public int[][] alternateChords;
+    public double[] probDistOfAltChords;
 
     Sequencer(int type) {
         switch (type) {
@@ -162,6 +164,24 @@ public class Sequencer {
     }
 
     public int[][] getChords() {
+        if(Piece.altChordProb > Piece.rand.nextDouble()){
+            
+
+            int[][] altChords = new int[myGame.getLastBoard().size()][alternateChords[0].length];
+            for(int i = 0; i < altChords.length; i++){
+                double tot = 0;
+                double r = Piece.rand.nextDouble();
+                for(int n = 0; n < probDistOfAltChords.length; n++){
+                    tot += probDistOfAltChords[n];
+                    if(tot > r){
+                        altChords[i] = alternateChords[n];
+                        break;
+                    }
+                }
+            }
+            return altChords;
+        }
+
         ArrayList<Board> allPossibleMoves = getAllPossibleMoves(myGame);
         ArrayList<Game> allPossibleGames = new ArrayList<Game>();
 

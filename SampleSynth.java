@@ -17,6 +17,27 @@ public class SampleSynth implements Synth {
      */
     public SampleSynth(int sampleNumber) {
         type = sampleNumber;
+        setSigAndF2(sampleNumber);
+        if (sig != null) {
+            double[] cathedral = ReadSound.readSoundDoubles("cathedral.wav");
+            sig = Arrays.copyOf(sig, sig.length + cathedral.length);
+            cathedral = Arrays.copyOf(cathedral, sig.length);
+            wetSig = FFT2.convAsImaginaryProduct(sig, cathedral);
+            wetSig = Arrays.copyOf(wetSig, sig.length);
+            double sMax = 0;
+            double wMax = 0;
+            for (int i = 0; i < wetSig.length; i++) {
+                sMax = Math.max(sMax, Math.abs(sig[i]));
+                wMax = Math.max(wMax, Math.abs(wetSig[i]));
+            }
+            for (int i = 0; i < wetSig.length; i++) {
+                sig[i] /= sMax;
+                wetSig[i] /= wMax;
+            }
+        }
+    }
+
+    public void setSigAndF2(int sampleNumber){
         switch (sampleNumber) {
             case 0:
                 f2 = 1762;
@@ -40,7 +61,7 @@ public class SampleSynth implements Synth {
                 break;
             case 5:
                 f2 = 172;
-                sig = ReadSound.readSoundDoubles("6.wav");
+                sig = ReadSound.readSoundDoubles("6.wav");//church bell sound
                 break;
             case 6:
                 f2 = 172;
@@ -91,38 +112,26 @@ public class SampleSynth implements Synth {
                 sig = ReadSound.readSoundDoubles("18.wav");// drone metallic swell A3
                 break;
         }
-
-        double[] cathedral = ReadSound.readSoundDoubles("cathedral.wav");
-        sig = Arrays.copyOf(sig, sig.length + cathedral.length);
-        cathedral = Arrays.copyOf(cathedral, sig.length);
-        wetSig = FFT2.convAsImaginaryProduct(sig, cathedral);
-        wetSig = Arrays.copyOf(wetSig, sig.length);
-        double sMax = 0;
-        double wMax = 0;
-        for(int i = 0; i < wetSig.length; i++){
-            sMax = Math.max(sMax, Math.abs(sig[i]));
-            wMax = Math.max(wMax, Math.abs(wetSig[i]));
-        }
-        for(int i = 0; i < wetSig.length; i++){
-            sig[i] /= sMax;
-            wetSig[i] /= wMax;
-        }
     }
 
     public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan) {
         // if(type != 17)
         // return;
-double globalReverb = Piece.reverbEnv.getValue(time);
-        double mix = (1-globalReverb) + globalReverb * vol;//max reverb is 50% mix
+        
+            if(freq < 50)
+            System.out.println("LF");
+            if(false)
+            return;
+        double globalReverb = Piece.reverbEnv.getValue(time);
+        double mix = (1 - globalReverb) + globalReverb * vol;// max reverb is 50% mix
         double[] reverb = new double[sig.length];
-        for(int i = 0; i < reverb.length; i++){
-            reverb[i] = wetSig[i] * (1-mix) + sig[i] * mix;
+        for (int i = 0; i < reverb.length; i++) {
+            reverb[i] = wetSig[i] * (1 - mix) + sig[i] * mix;
         }
 
-        for(int i = 0; i < 100; i++)
+        for (int i = 0; i < 100; i++)
             reverb[reverb.length - 1 - i] *= i / 100.0;
 
-        
         double f1 = freq;
         double[] processed = new double[(int) (reverb.length * f2 / f1)];
         int startFrame = (int) Math.rint(time * WaveWriter.SAMPLE_RATE);
