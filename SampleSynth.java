@@ -37,7 +37,7 @@ public class SampleSynth implements Synth {
         }
     }
 
-    public void setSigAndF2(int sampleNumber){
+    public void setSigAndF2(int sampleNumber) {
         switch (sampleNumber) {
             case 0:
                 f2 = 1762;
@@ -61,7 +61,7 @@ public class SampleSynth implements Synth {
                 break;
             case 5:
                 f2 = 172;
-                sig = ReadSound.readSoundDoubles("6.wav");//church bell sound
+                sig = ReadSound.readSoundDoubles("6.wav");// church bell sound
                 break;
             case 6:
                 f2 = 172;
@@ -117,10 +117,10 @@ public class SampleSynth implements Synth {
     public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan) {
         // if(type != 17)
         // return;
-        
-            if(freq < 50)
+
+        if (freq < 50)
             System.out.println("LF");
-            if(true)
+        if (false)
             return;
         double globalReverb = Piece.reverbEnv.getValue(time);
         double mix = (1 - globalReverb) + globalReverb * vol;// max reverb is 50% mix

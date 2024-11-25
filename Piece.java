@@ -238,6 +238,8 @@ WaveWriter ww;
 double time;
 ArrayList<LoopSynth> loopSynths;
 static Envelope reverbEnv;
+int pulsesPerTimeline;
+ArrayList<Stratum> substrata;
     public void parsimoniousTexture1() {
         boolean testOctave = false;
         int octToTest = 4;
@@ -247,7 +249,7 @@ static Envelope reverbEnv;
         // 0 - fast even rhythms 1 - probiblistic MER based on TET
 
         // used in rhythmic mode 1
-        int pulses = 15;
+        pulsesPerTimeline = 15;
         int progsPerTimeline = 1; // a subtle value. 2 makes harmonic rhythm faster (anything higher leads to
                                   // repeated notes)
         int onsetsPerTimeline = 5;
@@ -256,6 +258,8 @@ static Envelope reverbEnv;
 
         probOfHomorhythm = 0;// probability that strata will use the same timeline
         changeTimeline = false;// use to force timeline to change
+
+        pulseLength = 0.1;//how long each pulse lasts
 
         // pulses = 2;
         // onsetsPerTimeline = 2;
@@ -313,6 +317,17 @@ static Envelope reverbEnv;
         unplayedStrata.add(new Stratum(null, 4, vibs, rand, envs.get(2)));
 
         unplayedStrata.add(strata.get(0));//for the second exposition (index)
+
+//substata are used in time mode 4, the sustained texture,
+//to create a rhyhmic texture simultaneously
+//in this calse realizeChord is called only once for the one
+//stratum that's playing sustained. within the one call
+//sub strata are played at a faster rate (dividing the duration of realizeChord by pulses)
+//here pulses or numOfPulses (and related values) control only substrata.
+//to realize multiple sustained strata, the substarta reference in the
+//realizechord call should be replaced by an empy array on the second pass of
+//the loop that iterates across strata
+     substrata = new ArrayList<Stratum>();
 
         ArrayList<Cue> cues = new ArrayList<Cue>();
 
@@ -409,6 +424,9 @@ static Envelope reverbEnv;
                 int[][] alt = piece.seq.alternateChords;
                     piece.seq = new Sequencer(1);
                     piece.seq.alternateChords = alt;
+                    piece.strata = new ArrayList<Stratum>();
+                    for(int i = 0; i < unplayedStrata.size(); i++)
+                        piece.addStratum(i);
                 
                 }
         }.initialize(this, 2*60 + 50));
@@ -461,6 +479,35 @@ static Envelope reverbEnv;
                 piece.addStratum(4);////env index 7
             }
         }.initialize(this, 4*60 + 17));
+
+        cues.add(new Cue() {
+            void run() {
+                piece.pulsesPerTimeline = 21;
+                Piece.pulseLength = 0.075;
+            }
+        }.initialize(this, 4*60 + 20));
+
+        cues.add(new Cue() {
+            void run() {
+                piece.pulsesPerTimeline = 33;
+                Piece.pulseLength = 0.05;
+            }
+        }.initialize(this, 4*60 + 25));
+
+        cues.add(new Cue() {
+            void run() {
+                piece.pulsesPerTimeline = 15;
+                Piece.pulseLength = 0.1 * 2 / 3.0;
+            }
+        }.initialize(this, 4*60 + 30));
+
+        cues.add(new Cue() {
+            void run() {
+                piece.pulsesPerTimeline = 15;
+                Piece.pulseLength = 0.1;
+            }
+        }.initialize(this, 4*60 + 35));
+
         cues.add(new Cue() {
             void run() {
                 piece.seq.alternateChords = new int[][] { {25, 11, 3,22}, {3, 22, 14,0} };//33tetALt
@@ -507,12 +554,12 @@ static Envelope reverbEnv;
         }.initialize(this, 5*60 + 25));
         cues.add(new Cue() {
             void run() {
-                int[][] alt = piece.seq.alternateChords;
                 piece.seq = new Sequencer(2);
                 piece.seq.alternateChords = new int[][] { { 0, 12, 14, 5, 3, 2 }, { 7, 19, 7, 12, 10, 9 } };
-                piece.strata.remove(5);
-                piece.strata.remove(1);
-                piece.strata.remove(0);
+                piece.strata = new ArrayList<Stratum>();
+                for(int i = 0; i < unplayedStrata.size(); i++)
+                    if(i != 3 && i!=5 && i!=6)//don't add 3 lowest
+                        piece.addStratum(i);
                 piece.timeMode = 3;
             }
         }.initialize(this, 5 * 60 + 30));
@@ -521,7 +568,7 @@ static Envelope reverbEnv;
 
         cues.add(new Cue() {
             void run() {
-                Piece.pulseLength = 0.5;
+                Piece.pulseLength = 1;
                 piece.timeMode = 4;
                 loopSynths = new ArrayList<LoopSynth>();
                 for(int i = 0; i < 10; i++){
@@ -531,6 +578,27 @@ static Envelope reverbEnv;
                     piece.addStratum(1); //env index 1
             }
         }.initialize(this, 7*60 + 45));
+
+        cues.add(new Cue() {
+            void run() {
+                piece.addSubStratum(0);///0,3,5,6
+            }
+        }.initialize(this, 8*60));
+        cues.add(new Cue() {
+            void run() {
+                piece.addSubStratum(3);///0,3,5,6
+            }
+        }.initialize(this, 8*60 + 15));
+        cues.add(new Cue() {
+            void run() {
+                piece.addSubStratum(5);///0,3,5,6
+            }
+        }.initialize(this, 8*60 + 25));
+        cues.add(new Cue() {
+            void run() {
+                piece.addSubStratum(6);///0,3,5,6
+            }
+        }.initialize(this, 8*60 + 30));
 
 
         cues.add(new Cue() {
@@ -572,6 +640,7 @@ static Envelope reverbEnv;
             if (tl % timelineChangeFreq == 0 || changeTimeline)
                 tlSeed = rand.nextInt();
             tl++;
+            ArrayList<Stratum> substrataToPlay = substrata;
             for (int stratum = 0; stratum < strata.size(); stratum++) {
                 int seed = tlSeed + stratum;
                 if (rand.nextDouble() < probOfHomorhythm) {
@@ -579,20 +648,22 @@ static Envelope reverbEnv;
                 }
                 int[][] chords = strata.get(stratum).chords;
                 realizeChords(chords, notes, time, strata.get(stratum).synth, ww, rand, pan, seq.TET, timeMode,
-                        strata.get(stratum), onsetsPerTimeline, progsPerTimeline, seed, pulses);// rand.nextInt()
-                sNum++;
+                        strata.get(stratum), onsetsPerTimeline, progsPerTimeline, seed, pulsesPerTimeline, substrataToPlay);// rand.nextInt()
+                        substrataToPlay = new ArrayList<Stratum>();
+                        sNum++;
             }
             switch (timeMode) {
                 case 0:
-                    time += 8 * 1 / 10.0;
+                    time += notes[0].length * notes.length * pulseLength;
                     break;
                 case 1:
-                    time += pulses * 1 / 10.0;
+                    time += pulsesPerTimeline * pulseLength;
                     break;
                 case 2:
-                    time += pulses * 2 / 10.0;
+                    time += pulsesPerTimeline * 2 * pulseLength;
                     break;
                 case 3://in case we want 33 tet w/o overlapping chords
+                //not depricated, inludes probiblity of drone increasing after 7:30
                     time += 10 * 1 / 10.0;
                     break;
                 case 4://for sustained texture
@@ -626,7 +697,7 @@ static Envelope reverbEnv;
                     break;
 
                 case 3:
-                 pd += 1/(135.0 * 5);
+                 pd += 1/(135.0);
                 if ((time < 7 * 60 || time > 7 * 60 + 24) && rand.nextDouble() < pd) {
                     realizeDrone(strata.get(0).chords, new SampleSynth(17), seq.TET, ww, time, 0.5,
                             new double[] { 1 });
@@ -656,6 +727,12 @@ static Envelope reverbEnv;
         unplayedStrata.get(ind).chords = populateChords(seq, rand, unplayedStrata.get(ind).target * seq.TET,
         timeMode);
 strata.add(unplayedStrata.get(ind));
+    }
+
+    public void addSubStratum(int ind){
+        unplayedStrata.get(ind).chords = populateChords(seq, rand, unplayedStrata.get(ind).target * seq.TET,
+        timeMode);
+        substrata.add(unplayedStrata.get(ind));
     }
 
     public int[][] populateChords(Sequencer seq, Random rand, int target, int timeMode) {
@@ -690,7 +767,7 @@ strata.add(unplayedStrata.get(ind));
 
     public void realizeChords(int[][] chords, int[][] notes, double time, Synth synth, WaveWriter ww, Random rand,
             double[] pan, int tet, int timeMode, Stratum strat, int numOfOnsets, int numOfProgressions, int seed,
-            int pulses) {
+            int pulses, ArrayList<Stratum> substrataToPlay ) {
 
         switch (timeMode) {
             case 0:
@@ -698,7 +775,7 @@ strata.add(unplayedStrata.get(ind));
                     for (int i = 0; i < chords[n].length; i++) {
                         synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] / (double) tet),
                                 chordVolScalar * strat.vol(time) + chordVolMin, pan);
-                        time += 1 / 10.0;
+                        time += pulseLength;
                     }
                 }
                 chords = advanceChord(chords, notes, tet, strat.getTarget(time) * tet);
@@ -727,7 +804,7 @@ strata.add(unplayedStrata.get(ind));
                     for (int chordMemberIndex = 0; chordMemberIndex < notesPerChord
                             .get(chordIndex); chordMemberIndex++) {
                         int note = chords[boardIndex][chordMemberIndex % chords[boardIndex].length];
-                        synth.writeNote(ww.df, time + (onsets.get(onsetIndex) / 10.0),
+                        synth.writeNote(ww.df, time + (onsets.get(onsetIndex) * pulseLength),
                                 c0Freq * Math.pow(2, note / (double) tet),
                                 chordVolScalar * strat.vol(time) + chordVolMin, pan);
                         onsetIndex++;
@@ -751,7 +828,7 @@ strata.add(unplayedStrata.get(ind));
                             int note = chords[i][member];
                             if (osInd % 2 == 1)
                                 note = comp[member];
-                            synth.writeNote(ww.df, time + (onsets.get(osInd) / 10.0) + i * pulses / 10.0,
+                            synth.writeNote(ww.df, time + (onsets.get(osInd) / 10.0) + i * pulses * pulseLength,
                                     c0Freq * Math.pow(2, note / (double) tet),
                                     chordVolScalar * strat.vol(time) + chordVolMin, pan);
                         }
@@ -764,13 +841,57 @@ strata.add(unplayedStrata.get(ind));
                     for (int i = 0; i < chords[n].length; i++) {
                         synth.writeNote(ww.df, time, c0Freq * Math.pow(2, chords[n][i] / (double) tet),
                                 chordVolScalar * strat.vol(time) + chordVolMin, pan);
-                        time += 1 / 10.0;
+                        time += pulseLength;
                     }
                 }
                 chords = advanceChord(chords, notes, tet, strat.getTarget(time) * tet);
                 break;
                 case 4:
                 chords = advanceChord(chords, notes, tet, strat.getTarget(time) * tet);
+
+                //write substrata
+                double subpulse = notes.length * notes[0].length * pulseLength / (double)pulses;
+                this.timeMode = -1;//so that advanceChord doesn't trigger a change in sustain texture
+                for(Stratum strat1: substrataToPlay){
+                    chords = strat1.chords;
+                onsets = generateOnsets(pulses, seed, numOfOnsets);
+                numOfChords = numOfProgressions * chords.length;
+                 exactNotesPerChord = numOfOnsets / (double) numOfChords;
+                notesPerChord = new ArrayList<Integer>();
+                 tot = exactNotesPerChord;
+                 lastTot = 0;
+                while (tot <= numOfOnsets) {
+                    notesPerChord.add(((int) tot) - ((int) lastTot));
+                    lastTot = tot;
+                    tot += exactNotesPerChord;
+                }
+
+                 onsetIndex = 0;
+
+                 chordIndex = 0;
+                 boardIndex = 0;// not which board, but where in the board
+                while (onsetIndex < onsets.size()) {// 1 pass = 1 chord
+
+                    for (int chordMemberIndex = 0; chordMemberIndex < notesPerChord
+                            .get(chordIndex); chordMemberIndex++) {
+                        int note = chords[boardIndex][chordMemberIndex % chords[boardIndex].length];
+                        strat1.synth.writeNote(ww.df, time + (onsets.get(onsetIndex) * subpulse),
+                                c0Freq * Math.pow(2, note / (double) tet),
+                                chordVolScalar * strat1.vol(time) + chordVolMin, pan);
+                        onsetIndex++;
+                    }
+
+                    boardIndex++;
+                    chordIndex++;
+                    if (boardIndex == chords.length) {
+                        chords = advanceChord(chords, notes, tet, strat1.getTarget(time) * tet);
+                        boardIndex = 0;
+                    }
+                }
+                }
+
+                //correct the time mode for the next call of realizeChords
+                this.timeMode = 4;
                 break;
         }
 
@@ -865,6 +986,8 @@ strata.add(unplayedStrata.get(ind));
             n++;
             chords[i] = Arrays.copyOf(chords[i], n);
         }
+        //the 2d array chords is modified (which is why this method works... chords is stored in stratum, 
+        //but the instance variable isn't updated with the return value of this method)
 
         return chords;
     }

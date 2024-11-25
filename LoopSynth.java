@@ -64,26 +64,40 @@ public class LoopSynth implements Synth{
                 double t = (i + startFrame) / (double)WaveWriter.SAMPLE_RATE;
                 double am = (Math.sin(Math.PI * 2 * t * amFreq + amPhase) + 1) / 2.0;
             
-                double env = 1;
+                /* double env = 1;
                 if(i <  WaveWriter.SAMPLE_RATE)
                     env *= i /(double) WaveWriter.SAMPLE_RATE;
                 if(endFrame - startFrame - i < WaveWriter.SAMPLE_RATE)
                     env *= (endFrame - startFrame - i) / (double) WaveWriter.SAMPLE_RATE;
-                
+                */
                 /*  for (int n = 0; n < pan.length; n++) {
                     //frames[n][i + startFrame] += am * env * pan[n] * processed[i % processed.length];
                 }
                  */  
                 //drySig[i + startFrame - firstStartFrame] += am * env * processed[i % processed.length];
-                noteSig[i] += am * env * processed[i % processed.length];
+                noteSig[i] += am * processed[i % processed.length];//env
 
               
 
             }
-            noteSig = addReverb(noteSig);
+            int nLen = endFrame - startFrame;
+            noteSig = FFT2.convAsImaginaryProduct(noteSig, noteSig);
+            noteSig = Arrays.copyOf(noteSig, nLen);
+
+            double nMax = 0;
+        for(int i = 0; i < noteSig.length; i++){
+            nMax = Math.max(nMax, Math.abs(noteSig[i]));
+        }
+        for(int i = 0; i < noteSig.length; i++){
+            noteSig[i] /= nMax;
+        }
+        for(int i = 0; i < WaveWriter.SAMPLE_RATE; i++){
+            noteSig[i] *= i / (double)WaveWriter.SAMPLE_RATE;
+            noteSig[noteSig.length - 1 - i] *= i / (double)WaveWriter.SAMPLE_RATE;
+        }
             for(int i = 0; i < noteSig.length; i++){
                 for(int n = 0; n < pan.length; n++){
-                    frames[n][i+startFrame] += 0.5 * noteSig[i] * pan[n];
+                    frames[n][i+startFrame] += 0.3 * noteSig[i] * pan[n];
                 }
             }
         }
