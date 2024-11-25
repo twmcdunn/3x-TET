@@ -53,7 +53,7 @@ public class Vibs implements Synth {
 
     public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan) {
 
-        if(false)
+        if(true)
             return;
         freq = freq * 44100 / (double) WaveWriter.SAMPLE_RATE;
         double exactMidi = 69 + 12 * Math.log(freq / 440) / Math.log(2);

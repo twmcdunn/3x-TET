@@ -8,21 +8,30 @@ import java.util.ArrayList;
 public class Tet15
 {
     public static final String[] NOTE_NAMES = new String[]{"C ", "C#", "D ", "Eb", "E ", "F ", "F#", "G ", "Ab", "A ", "Bb", "B "};
-    public static int TET = 21;
+    public static int TET = 33;
     public static void main(String[] args){
-        printLimTrans(7);
+        //printLimTrans(7);
         //calculateScale();
-        System.out.println(700/57.14285714);
+        //System.out.println(700/57.14285714);
         maximumlyEven();
     }
+//0 1 3 5 6 8 10 12 13 15 17 19 20 22 24 26 27 29 31 
+//0 2 5 8 10 13 16
+
+//0 1 3 5 7 9 11 12 14 16 18 20 22 23 25 27 29 31
+//0 2 5 7 10 12 15
+//{0,3,9,12,18,22,27}
+//m 3 = 8; p5 = 19
 
     public static void maximumlyEven(){
         double a = 0;
-        while(a < 21){
+        while(a < 33){
             System.out.print((int)a + " ");
-            a += 21 / 12.0;
+            a += 33 / 18.0;
         }
 
+        System.out.println();
+        System.out.println();
         System.out.println();
 
         a = 0;
@@ -30,7 +39,73 @@ public class Tet15
             System.out.print((int)a + " ");
             a += 12 / 5.0;
         }
+
+        System.out.println();
+
+        System.out.println();
+        int[] mode = {0, 3, 5, 8, 11, 14, 16, 19, 22, 25, 27, 30};
+        
+        //mode = new int[]{0,3,7,11,14,18,22,25,29};
+        int[] minorTriad = {0,8,19};
+        int[] majorTriad = {0,11,19};
+        int[] scaleDegrees = new int[]{0,2,4,7,9};
+        for(int offset = 0; offset < mode.length; offset++){
+            int[] chord = new int[scaleDegrees.length];
+            for(int i = 0; i < chord.length; i++){
+                chord[i] = mode[(scaleDegrees[i] + offset) % mode.length];
+            }
+            for(int root = 0; root < chord.length; root++){
+                boolean triadContained = true;
+                for(int i = 0; i < minorTriad.length; i++){
+                    boolean memberContained = false;
+                    for(int n = 0; n < chord.length; n++){
+                        if(minorTriad[i] == (chord[n] + (33 - chord[root])) % 33){
+                        memberContained = true;
+                        break;
+                        }
+                    }
+                    if(!memberContained){
+                        triadContained = false;
+                        break;
+                    }
+                }
+                if(triadContained){
+                    System.out.print("ROOT " + root + " MINOR: ");
+                    for(int member: chord){
+                        System.out.print(((33+member-chord[root])%33) + " ");//((33+member-chord[root])%33)
+                    }
+                    
+                }
+
+                triadContained = true;
+                for(int i = 0; i < majorTriad.length; i++){
+                    boolean memberContained = false;
+                    for(int n = 0; n < chord.length; n++){
+                        if(majorTriad[i] == (chord[n] + (33 - chord[root])) % 33){
+                        memberContained = true;
+                        break;
+                        }
+                    }
+                    if(!memberContained){
+                        triadContained = false;
+                        break;
+                    }
+                }
+                if(triadContained){
+                    System.out.print("ROOT " + root + " MAJOR: ");
+                    for(int member: chord){
+                        System.out.print(((33+member-chord[root])%33) + " ");
+                    }
+                }
+            }
+        }
+        
     }
+
+    //1,25             2, 3
+    //{25,0,5,11,19} {3,8,14,22,27}
+
+    //{{0,5,11,19,25},{0,8,13,19,27},{0,5,11,19,24},{0,8,14,19,28},{0,6,11,19,25}, {0,8,14,19,27}}
     
 /*
  * Modes of limited trans in 21 TET

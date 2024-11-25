@@ -120,7 +120,7 @@ public class SampleSynth implements Synth {
         
             if(freq < 50)
             System.out.println("LF");
-            if(false)
+            if(true)
             return;
         double globalReverb = Piece.reverbEnv.getValue(time);
         double mix = (1 - globalReverb) + globalReverb * vol;// max reverb is 50% mix

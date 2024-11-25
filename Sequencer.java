@@ -46,6 +46,19 @@ public class Sequencer {
                 sourceSyntagm = new Board(this);
                 initializeHardCodedSource(new int[][] { { 0, 0 }, { 1, 14 } });
                 break;
+            case 2:
+                TET = 33;
+                triadDictionary = new int[][]{
+                    {0,5,11,19,25},{0,8,13,19,27},{0,5,11,19,24},{0,8,14,19,28},{0,6,11,19,25}, {0,8,14,19,27}
+                };
+                modes = new int[][] { {0, 3, 5, 8, 11, 14, 16, 19, 22, 25, 27, 30}};
+                sourceSyntagm = new Board(this);
+                initializeHardCodedSource(new int[][] { { 1, 25 }, { 2, 3 } });
+                //1,25             2, 3
+    //{25,0,5,11,19} {3,8,14,22,27}
+    //{{0,5,11,19,25},{0,8,13,19,27},{0,5,11,19,24},{0,8,14,19,28},{0,6,11,19,25}, {0,8,14,19,27}}
+                break;
+    
         }
 
         initializeVariables();

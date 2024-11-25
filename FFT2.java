@@ -158,7 +158,7 @@ public class FFT2 {
     }
 
     public static void convTest() {
-        double[] sig1 = ReadSound.readSoundDoubles("21.wav");// "cathedral.wav");
+        double[] sig1 = ReadSound.readSoundDoubles("6.wav");// "cathedral.wav");
         //sig1 = Arrays.copyOf(sig1, 48000 * 10);
         /*
          * float[][] frames = new float[1][WaveWriter.SAMPLE_RATE * 30];
@@ -177,9 +177,12 @@ public class FFT2 {
         }
         */
 
-        double[] sig2 = ReadSound.readSoundDoubles("20.wav");// "test.wav");
+        double[] sig2 = new double[sig1.length];// "test.wav");
 
-        boolean pitchMatch = true;
+        for(int i = 0; i < sig2.length; i++){
+            sig2[i] = Math.random() * 2 - 1;
+        }
+        boolean pitchMatch = false;
         if (pitchMatch)
             sig2 = matchPitch(sig1, sig2);
         if (sig1.length < sig2.length) {
