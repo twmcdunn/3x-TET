@@ -4,15 +4,16 @@ import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioSystem;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+
 /**
  * Write a description of class WaveWriter here.
  *
  * @author (your name)
  * @version (a version number or a date)
  */
-public class WaveWriter
-{
+public class WaveWriter {
     // instance variables - replace the example below with your own
     public MonoPcmInputStream mpis;
     public float[][] df;
@@ -23,34 +24,45 @@ public class WaveWriter
     /**
      * Constructor for objects of class WaveWriter
      */
-    public WaveWriter(String name)
-    {
-        
+    public WaveWriter(String name) {
+
         df = new float[8][length];
         fileName = name;
 
-        //render();
+        // render();
     }
 
-    public void render(){
+    public void render() {
         render(8);
     }
-    //render wave file
-    public void render(int chans){
-        for(int chan = 0; chan < chans; chan++){
+
+    // render wave file
+    public void render(int chans) {
+        double max = 0;
+        for (int chan = 0; chan < chans; chan++) {
+            for (int i = 0; i < df[chan].length; i++) {
+                max = Math.max(max, Math.abs(df[chan][i]));
+            }
+        }
+        for (int chan = 0; chan < chans; chan++) {
+            for (int i = 0; i < df[chan].length; i++) {
+                df[chan][i] /= max;
+            }
+        }
+        for (int chan = 0; chan < chans; chan++) {
             mpis = new MonoPcmInputStream();
             /*
-            float peak = 0;
-            for(int i = 0; i < df[chan].length; i++){
-                peak = Math.max(peak, Math.abs(df[chan][i]));
-            }
-            for(int i = 0; i < df[chan].length; i++){
-                df[chan][i] /= peak;
-            }
-            */
+             * float peak = 0;
+             * for(int i = 0; i < df[chan].length; i++){
+             * peak = Math.max(peak, Math.abs(df[chan][i]));
+             * }
+             * for(int i = 0; i < df[chan].length; i++){
+             * df[chan][i] /= peak;
+             * }
+             */
 
-            for(int i = df[chan].length - 1; i >= 0; i--){
-                if(df[chan][i] != 0){
+            for (int i = df[chan].length - 1; i >= 0; i--) {
+                if (df[chan][i] != 0) {
                     df[chan] = Arrays.copyOfRange(df[chan], 0, i);
                     break;
                 }
@@ -58,11 +70,13 @@ public class WaveWriter
 
             mpis.setDataFrames(df[chan]);
 
-            AudioFormat af = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, SAMPLE_RATE, 16, 1, 2,SAMPLE_RATE,false);
-            try{
-                AudioSystem.write(new AudioInputStream(mpis, af, mpis.framesToRead), AudioFileFormat.Type.WAVE, new File(fileName + chan + ".wav"));
+            AudioFormat af = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, SAMPLE_RATE, 16, 1, 2, SAMPLE_RATE,
+                    false);
+            try {
+                AudioSystem.write(new AudioInputStream(mpis, af, mpis.framesToRead), AudioFileFormat.Type.WAVE,
+                        new File(fileName + chan + ".wav"));
+            } catch (Exception e) {
             }
-            catch(Exception e){}
         }
     }
 

@@ -45,26 +45,8 @@ public class SustainedSynth extends SampleSynth {//SampleSynth
         }
     }
 
-    public double[] addReverb(double[] processed){
-        double[] cathedral = ReadSound.readSoundDoubles("cathedral.wav");
-        processed = Arrays.copyOf(processed, processed.length + cathedral.length);
-        cathedral = Arrays.copyOf(cathedral, processed.length);
-        double[] wetSig = FFT2.convAsImaginaryProduct(processed, cathedral);
-        wetSig = Arrays.copyOf(wetSig, processed.length);
-        double sMax = 0;
-        double wMax = 0;
-        for(int i = 0; i < wetSig.length; i++){
-            sMax = Math.max(sMax, Math.abs(processed[i]));
-            wMax = Math.max(wMax, Math.abs(wetSig[i]));
-        }
-        double mix = 0.7;
-        for(int i = 0; i < wetSig.length; i++){
-            processed[i] /= sMax;
-            wetSig[i] /= wMax;
-            processed[i] = mix * processed[i] + (1-mix) * wetSig[i];
-        }
-        return processed;
-    }
+   
+    
 
     public double[] susSound(double[] sig, double f2, double freq, double startVol) {
         double freqRatio = freq / f2;// Math.pow(2, (exactMidi - midiNum) / 12.0);
@@ -106,6 +88,13 @@ public class SustainedSynth extends SampleSynth {//SampleSynth
             else if (startVol == 0)
                 envVal = env.getValue(1 - i / (double) noise.length);
             noise[i] *= envVal;
+        }
+
+        if(startVol == -1){
+            noise = new double[WaveWriter.SAMPLE_RATE * 30];
+            for (int i = 0; i < noise.length; i++) {
+                noise[i] = Math.random() * 2 - 1;
+            }
         }
 
         int actualDur = noise.length;

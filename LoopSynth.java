@@ -61,8 +61,6 @@ public class LoopSynth implements Synth{
             double[] noteSig = new double[endFrame - startFrame];
 
             for (int i = 0; i < endFrame - startFrame; i++) {
-                double t = (i + startFrame) / (double)WaveWriter.SAMPLE_RATE;
-                double am = (Math.sin(Math.PI * 2 * t * amFreq + amPhase) + 1) / 2.0;
             
                 /* double env = 1;
                 if(i <  WaveWriter.SAMPLE_RATE)
@@ -75,7 +73,7 @@ public class LoopSynth implements Synth{
                 }
                  */  
                 //drySig[i + startFrame - firstStartFrame] += am * env * processed[i % processed.length];
-                noteSig[i] += am * processed[i % processed.length];//env
+                noteSig[i] += processed[i % processed.length];//env
 
               
 
@@ -96,8 +94,11 @@ public class LoopSynth implements Synth{
             noteSig[noteSig.length - 1 - i] *= i / (double)WaveWriter.SAMPLE_RATE;
         }
             for(int i = 0; i < noteSig.length; i++){
+
+                double t = (i + startFrame) / (double)WaveWriter.SAMPLE_RATE;
+                double am = (Math.sin(Math.PI * 2 * t * amFreq + amPhase) + 1) / 2.0;
                 for(int n = 0; n < pan.length; n++){
-                    frames[n][i+startFrame] += 0.3 * noteSig[i] * pan[n];
+                    frames[n][i+startFrame] += am * 0.1 * noteSig[i] * pan[n];
                 }
             }
         }
@@ -132,7 +133,7 @@ public class LoopSynth implements Synth{
         WaveWriter ww = new WaveWriter("test");
         synth.addPitch(440,0);
         synth.addPitch(330, 10);
-        synth.addPitch(-1, 20);
+        synth.addPitch(-1, 50);
 
         float[][] sound = new float[1][WaveWriter.SAMPLE_RATE * 60];
         synth.writeNote(ww.df, 0, 176, 0.1, new double[] { 1 });

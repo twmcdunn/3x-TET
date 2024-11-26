@@ -3,6 +3,7 @@
         "."
     ],
     "java.project.referencedLibraries": [
-        "c:\\Users\\timothymcdunn\\Documents\\Scripts\\commons-math3-3.6.1.jar"
-    ]
+        "/Users/maestro/Documents/Programs/Fixed Media/commons-math3-3.6.1.jar"
+    ],
+    "java.debug.settings.vmArgs": "-Xmx5G"
 }

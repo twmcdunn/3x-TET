@@ -33,6 +33,24 @@ public class Stratum
         //double vol = (Math.sin(Math.PI * 2 * time * amFreq + amPhase) + 1) / 2.0;
        // System.out.println(time + "," + vol);
        double vol = env.getValue(time);
+       if(time > 5 * 60 + 30 && time < 7 * 60){
+        double manheimCresc = (time - (5 * 60 + 30)) / (7*60.0 - ( 5 * 60 + 30));
+        manheimCresc /= 2.0;//cresc halfway, then drop suddenly for foreground entrance
+        vol = (1-manheimCresc) * vol + manheimCresc;
+       }
+       if(time > 7 * 60 + 24 && time < 7*60 + 45){
+            double manheimCresc = (time - (7 * 60 + 24)) / (21.0);
+            //cresc all the way
+            vol = (1-manheimCresc) * vol + manheimCresc;
+       }
+       if(time > 330 && time < 335){
+        double manheimCresc = (time - 330)/5.0;
+        vol = (1-manheimCresc) * vol + manheimCresc;
+       }
+       if(time > 335 && time < 340){
+        double manheimCresc = (time - 335)/5.0;
+        vol = (1-manheimCresc) * vol + manheimCresc;
+       }
         return vol;
     }
 

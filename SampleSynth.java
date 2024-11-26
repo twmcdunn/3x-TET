@@ -11,15 +11,23 @@ public class SampleSynth implements Synth {
     public double f2;
     public int type;
     public double[] wetSig;
+    double mix = 0.7;
+    double[] cathedral;
 
     /**
      * Constructor for objects of class SampleSynth
      */
+
+     public SampleSynth(){//for children
+        cathedral = ReadSound.readSoundDoubles("cathedral.wav");
+     }
+
     public SampleSynth(int sampleNumber) {
+        cathedral = ReadSound.readSoundDoubles("cathedral.wav");
         type = sampleNumber;
         setSigAndF2(sampleNumber);
         if (sig != null) {
-            double[] cathedral = ReadSound.readSoundDoubles("cathedral.wav");
+           
             sig = Arrays.copyOf(sig, sig.length + cathedral.length);
             cathedral = Arrays.copyOf(cathedral, sig.length);
             wetSig = FFT2.convAsImaginaryProduct(sig, cathedral);
@@ -111,6 +119,10 @@ public class SampleSynth implements Synth {
                 f2 = 224;
                 sig = ReadSound.readSoundDoubles("18.wav");// drone metallic swell A3
                 break;
+            case 18:
+                f2 = 265;
+                sig = ReadSound.readSoundDoubles("24.wav");// drone metallic swell A3
+                break;
         }
     }
 
@@ -120,7 +132,7 @@ public class SampleSynth implements Synth {
 
         if (freq < 50)
             System.out.println("LF");
-        if (false)
+        if (true)
             return;
         double globalReverb = Piece.reverbEnv.getValue(time);
         double mix = (1 - globalReverb) + globalReverb * vol;// max reverb is 50% mix
@@ -155,6 +167,27 @@ public class SampleSynth implements Synth {
         }
     }
 
+    public double[] addReverb(double[] processed){
+        processed = Arrays.copyOf(processed, processed.length + cathedral.length);
+        double[] cathedralCopy = Arrays.copyOf(cathedral, processed.length);
+        double[] wetSig = FFT2.convAsImaginaryProduct(processed, cathedralCopy);
+        wetSig = Arrays.copyOf(wetSig, processed.length);
+        double sMax = 0;
+        double wMax = 0;
+        for(int i = 0; i < wetSig.length; i++){
+            sMax = Math.max(sMax, Math.abs(processed[i]));
+            wMax = Math.max(wMax, Math.abs(wetSig[i]));
+        }
+        
+        for(int i = 0; i < wetSig.length; i++){
+            processed[i] /= sMax;
+            wetSig[i] /= wMax;
+            processed[i] = mix * processed[i] + (1-mix) * wetSig[i];
+        }
+        return processed;
+    }
+
+
     public static void testSample() {
         Synth synth = new SampleSynth(16);
         WaveWriter ww = new WaveWriter("test");
@@ -172,6 +205,26 @@ public class SampleSynth implements Synth {
             ww.df[0][i] += sound[0][i] / max;
         }
         ww.render(1);
+    }
+
+    public double[] pitchShift(double[] sig, double f2, double freq){
+        double freqRatio = freq / f2;// Math.pow(2, (exactMidi - midiNum) / 12.0);
+
+        double[] processed = new double[(int) (sig.length / freqRatio)];
+
+        for (int i = 0; i < (int) (sig.length / freqRatio); i++) {
+            double exInd = i * freqRatio;
+            int index = (int) exInd;
+            double fract = exInd - index;
+            double frame1 = sig[index];
+            double frame2 = frame1;
+            if (index + 1 < sig.length)
+                frame2 = sig[index + 1];
+            double frame = frame1 * (1 - fract) + frame2 * fract;
+
+            processed[i] = frame;
+        }
+        return processed;
     }
 
     public static void testFilteredChime() {

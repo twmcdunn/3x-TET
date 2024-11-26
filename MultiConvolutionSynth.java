@@ -12,7 +12,8 @@ public class MultiConvolutionSynth extends SustainedSynth {
         
         int actualDur = processed.length;
         
-        processed = FFT2.convAsImaginaryProduct(processed, processed);
+        for(int i = 0; i < 1; i++)
+         processed = FFT2.convAsImaginaryProduct(processed, processed);
 
         processed = Arrays.copyOf(processed, actualDur);//+5000
 
@@ -47,7 +48,7 @@ public class MultiConvolutionSynth extends SustainedSynth {
      }
 
      public static void test() {
-        Synth synth = new MultiConvolutionSynth(5,0.01);
+        Synth synth = new MultiConvolutionSynth(18,0.01);
         WaveWriter ww = new WaveWriter("multiConvTest");
 
         //float[][] sound = new float[1][WaveWriter.SAMPLE_RATE * 60];
