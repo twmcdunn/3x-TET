@@ -40,7 +40,7 @@ public class Granulated extends SampleSynth {
     }
 
     public void writeNote(float[][] frames, double time, double target, double vol, double[] pan) {
-        if(true)
+        if(false)
             return;
         for (int n = 0; n < 500; n++) {
             double t = Math.random();

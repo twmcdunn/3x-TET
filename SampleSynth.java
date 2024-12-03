@@ -123,6 +123,10 @@ public class SampleSynth implements Synth {
                 f2 = 265;
                 sig = ReadSound.readSoundDoubles("24.wav");// drone metallic swell A3
                 break;
+            case 19:
+                f2 = 280;
+                sig = ReadSound.readSoundDoubles("19.wav");// drone metallic swell A3
+                break;
         }
     }
 
@@ -132,7 +136,7 @@ public class SampleSynth implements Synth {
 
         if (freq < 50)
             System.out.println("LF");
-        if (true)
+        if (false)
             return;
         double globalReverb = Piece.reverbEnv.getValue(time);
         double mix = (1 - globalReverb) + globalReverb * vol;// max reverb is 50% mix

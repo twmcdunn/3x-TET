@@ -7,9 +7,17 @@ import java.util.Comparator;
 public class LoopDecaySynth extends LoopSynth {
     public double vol;
 
-    public LoopDecaySynth(double volume) {
-        sig = ReadSound.readSoundDoubles("25.wav");
-        f2 = 440;
+    public LoopDecaySynth(double volume, int type) {
+        switch (type) {
+            case 0:
+                sig = ReadSound.readSoundDoubles("25.wav");
+                f2 = 440;
+                break;
+            case 1:
+                sig = ReadSound.readSoundDoubles("23.wav");
+                f2 = 173;
+                break;
+        }
         vol = volume;
     }
 
@@ -18,7 +26,7 @@ public class LoopDecaySynth extends LoopSynth {
     }
 
     public void writeNote(float[][] frames, double time, double freq, double startVol, double[] pan) {
-        time += Math.random() * 0.05;
+        time += Math.random() * 0.1;
 
         double freqRatio = freq / f2;// Math.pow(2, (exactMidi - midiNum) / 12.0);
 
@@ -38,28 +46,26 @@ public class LoopDecaySynth extends LoopSynth {
             processed[i] = frame;
         }
         double max = 0;
-        for(int i = 0; i < processed.length; i++){
+        for (int i = 0; i < processed.length; i++) {
             max = Math.max(Math.abs(processed[i]), max);
         }
-        for(int i = 0; i < processed.length; i++){
+        for (int i = 0; i < processed.length; i++) {
             processed[i] /= max;
         }
 
         // int endFrame = (int)((time + 6) * WaveWriter.SAMPLE_RATE)+
         // WaveWriter.SAMPLE_RATE;
         int seconds = 6;
-        if(startVol == 1)
+        if (startVol == 1)
             seconds *= 2;
         double[] noteSig = new double[WaveWriter.SAMPLE_RATE * seconds + 5000];
-        
-        
 
         for (int i = 0; i < noteSig.length; i++) {
             double t = i / (double) WaveWriter.SAMPLE_RATE;
 
-            if(startVol == 1)
+            if (startVol == 1)
                 t /= 2.0;
-                        
+
             if (startVol == 0)
                 t = 6 - t;
 
@@ -70,28 +76,29 @@ public class LoopDecaySynth extends LoopSynth {
         }
 
         for (int i = 0; i < 5000; i++) {
-            if(startVol == 0)
+            if (startVol == 0)
                 noteSig[i] *= i / 5000.0;
             noteSig[noteSig.length - 1 - i] *= i / 5000.0;
         }
-        if(startVol == 1){
-            //f2 = 265;
+        if (startVol == 1) {
+            // f2 = 265;
             double[] attack = pitchShift(ReadSound.readSoundDoubles("26.wav"), 265, freq);
             attack = Arrays.copyOf(attack, WaveWriter.SAMPLE_RATE / 20);
-            attack = BPF.BPF(attack, WaveWriter.SAMPLE_RATE, freq, 0.01);//001
-        max = 0;
-            for(int i = 0; i < attack.length; i++){
+            attack = BPF.BPF(attack, WaveWriter.SAMPLE_RATE, freq, 0.01);// 001
+            max = 0;
+            for (int i = 0; i < attack.length; i++) {
                 max = Math.max(Math.abs(attack[i]), max);
             }
-            for(int i = 0; i < attack.length; i++){
+            for (int i = 0; i < attack.length; i++) {
                 attack[i] /= max;
             }
-            for(int i = 0; i < attack.length; i++){
+            for (int i = 0; i < attack.length; i++) {
                 double env = i / (double) attack.length;
-                noteSig[i] = env * noteSig[i] + (1-env) * attack[i];
+                noteSig[i] = env * noteSig[i] + (1 - env) * attack[i];
             }
         }
-        //noteSig = Arrays.copyOf(noteSig, noteSig.length + WaveWriter.SAMPLE_RATE * 3);//3 sec for reverb tail
+        // noteSig = Arrays.copyOf(noteSig, noteSig.length + WaveWriter.SAMPLE_RATE *
+        // 3);//3 sec for reverb tail
 
         // int nLen = endFrame - startFrame;
         noteSig = addReverb(noteSig);
@@ -134,7 +141,8 @@ public class LoopDecaySynth extends LoopSynth {
         }
         return processed;
     }
-    public double[] pitchShift(double[] sig, double f2, double freq){
+
+    public double[] pitchShift(double[] sig, double f2, double freq) {
         double freqRatio = freq / f2;// Math.pow(2, (exactMidi - midiNum) / 12.0);
 
         double[] processed = new double[(int) (sig.length / freqRatio)];

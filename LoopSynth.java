@@ -29,6 +29,22 @@ public class LoopSynth implements Synth{
             }
         });
 
+        ArrayList<double[]> pitchesToAdd= new ArrayList<double[]>();//split long notes in half
+        for(int i = 0; i < pitches.size() - 1; i++){
+            double dur = pitches.get(i+1)[1] - pitches.get(i)[1];
+            if(dur > 3){
+                pitchesToAdd.add(new double[] {pitches.get(i)[0], pitches.get(i)[1] + dur / 2.0});
+            }
+        }
+
+        pitches.addAll(pitchesToAdd);
+
+        Collections.sort(pitches, new Comparator<double[]>(){
+            public int compare(double[] p1,double[] p2){
+                return (int)(100 * (p1[1] - p2[1]));
+            }
+        });
+
 
         for (double[] pitch : pitches) {
             freq = pitch[0];

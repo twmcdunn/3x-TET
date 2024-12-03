@@ -92,8 +92,19 @@ public class SustainedSynth extends SampleSynth {//SampleSynth
 
         if(startVol == -1){
             noise = new double[WaveWriter.SAMPLE_RATE * 30];
+            double targ = Math.random();
+            double env = Math.random();
             for (int i = 0; i < noise.length; i++) {
                 noise[i] = Math.random() * 2 - 1;
+                noise[i] *= 0.1 + 0.9 * env;
+                if(i % WaveWriter.SAMPLE_RATE / 2 == 0)
+                    targ = Math.random();
+                    if(targ > env)
+                    env *= 1.0001;
+                    else
+                    env /= 1.0001;
+                    env = Math.min(env, 1);
+                    env = Math.max(env, 0);
             }
         }
 

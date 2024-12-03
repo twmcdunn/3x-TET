@@ -67,6 +67,24 @@ public class Sequencer {
         myGame = sourceGame;
     }
 
+           // only implementing for 33TET dictionary
+    public int[][] getCurrentTriadicSubsets() {
+        switch (TET) {
+            case 33:
+                int[][] triads = new int[][]{{0,11,19},{0,8,19}};
+                int[][] subsets = new int[myGame.getLastBoard().size()][3];
+                for(int i = 0; i < myGame.getLastBoard().size(); i++){
+                    Triad t = myGame.getLastBoard().get(i);
+                    int[] triad = triads[t.type % 2];
+                    for(int n = 0; n < triad.length; n++){
+                        subsets[i][n] = (triad[n] + t.root) % TET;
+                    }
+                }
+                return subsets;
+        }
+        return null;
+    }
+
     public static void main(String[] args) {
         new Sequencer(0).playGames();
     }

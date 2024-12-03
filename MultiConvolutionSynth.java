@@ -12,7 +12,7 @@ public class MultiConvolutionSynth extends SustainedSynth {
         
         int actualDur = processed.length;
         
-        for(int i = 0; i < 1; i++)
+        for(int i = 0; i < 2; i++)
          processed = FFT2.convAsImaginaryProduct(processed, processed);
 
         processed = Arrays.copyOf(processed, actualDur);//+5000
@@ -48,11 +48,11 @@ public class MultiConvolutionSynth extends SustainedSynth {
      }
 
      public static void test() {
-        Synth synth = new MultiConvolutionSynth(18,0.01);
+        Synth synth = new MultiConvolutionSynth(19,0.01);
         WaveWriter ww = new WaveWriter("multiConvTest");
 
         //float[][] sound = new float[1][WaveWriter.SAMPLE_RATE * 60];
-        synth.writeNote(ww.df, 0, 440, 1, new double[] { 1 });
+        synth.writeNote(ww.df, 0, 440, -1, new double[] { 1 });
         double max = Double.MIN_VALUE;
 
         for (int i = 0; i < ww.df[0].length; i++) {
