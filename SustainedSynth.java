@@ -25,7 +25,7 @@ public class SustainedSynth extends SampleSynth {//SampleSynth
     }
 
     //volume is used to indicate whether it grows or decays
-    public void writeNote(float[][] frames, double time, double freq, double startVol, double[] pan) {
+    public void childWriteNote(float[][] frames, double time, double freq, double startVol, double[] pan) {
 
 
        double[] processed = susSound(sig, f2, freq, startVol);

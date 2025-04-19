@@ -5,17 +5,22 @@
  * @author (your name)
  * @version (a version number or a date)
  */
-public class FMSynth implements Synth
+public class FMSynth extends Synth
 {
     private double[] waveTable;
+    public double vol;
     public FMSynth(){
+        spatializer = new Spatializer(Math.PI * 2 / (20 + 20 * rand.nextDouble()), Math.PI * 2 * rand.nextDouble());
         waveTable = new double[WaveWriter.SAMPLE_RATE];
         for(int i = 0; i < WaveWriter.SAMPLE_RATE; i++){
             waveTable[i] = Math.sin(2 * Math.PI * i / (double) WaveWriter.SAMPLE_RATE);
         }
+        vol = 0.35;
     }
 
     public double sin(double x){
+        while(x < 0)
+            x += Math.PI * 2;
         double scaledX = (WaveWriter.SAMPLE_RATE * x / (2 * Math.PI));
         int flooredX = (int)scaledX;
         double fract = scaledX - flooredX;
@@ -29,27 +34,87 @@ public class FMSynth implements Synth
         return sin(x + Math.PI * 3 / 2.0);
     }
 
-    public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan){
+    public void childWriteNote(float[][] frames, double time, double freq, double startVol, double[] pan){
         double carrier = freq;
-        double modulator = freq;
+        double modulator = freq / 4.0;
         double dur = 6;
+        if(startVol == 1)
+            dur = 12;
         int durFrames = (int)Math.rint(dur * WaveWriter.SAMPLE_RATE);
         int startFrame = (int)Math.rint(time * WaveWriter.SAMPLE_RATE);
-
+        double[] noteSig = new double[durFrames];
+        double amFreq = 1/(Math.random() * 2 + 1);
+        double amPh = Math.random() * Math.PI * 2;
         for(int i = 0; i < durFrames; i++){
             double t = i /(double)WaveWriter.SAMPLE_RATE; 
             double env = (durFrames - i) / (double)durFrames;
             double db = env;
             double amp = Math.pow(10, (60 * db - 60) / 20.0);
-            amp *= vol;
+
+
+
+            if (startVol == 1)
+                t /= 2.0;
+
+            if (startVol == 0)
+                t = 6 - t;
+
+             env = Math.pow(10, -t / 2.0);
+            
+            amp = vol * env;
             if(durFrames - i < 100){
                 amp *= (durFrames - i) / 100.0;
             }
             if(i < 100)
                 amp *= i / 100.0;
-            double frame = amp * sin(2 * Math.PI * carrier * t - 3 * amp * cos(2 * Math.PI * modulator * t));
-            for(int chan = 0; chan < pan.length; chan++)
-                frames[chan][i + startFrame] += pan[chan] * frame;
+            if(i > durFrames - 100)
+                amp *= (durFrames-i) / 100.0;
+            t = i /(double)WaveWriter.SAMPLE_RATE; 
+            double am = 0.5 + 0.5 * (sin(Math.PI * 2 * amFreq * t + amPh) + 1) / 2.0;
+            am = 1;
+            double frame = amp * Math.sin(2 * Math.PI * carrier * t - am * 100 * amp * Math.cos(2 * Math.PI * modulator * t));
+            noteSig[i] += frame;
         }
+        mix = 0.5;
+       noteSig = addReverb(noteSig);
+        for(int i = 0; i < noteSig.length; i++)
+            for(int chan = 0; chan < pan.length; chan++)
+                    frames[chan][i + startFrame] += pan[chan] * noteSig[i];
+    }
+
+    public static void test() {
+        Synth synth = new FMSynth();
+        WaveWriter ww = new WaveWriter("testFM");
+        int[] chord = new int[]{6 + 15 * 4,0 + 15 * 5,3 + 15 * 5,11+ 15 * 5};
+        for(int n = 0; n < 4; n++){
+            int note = chord[n];
+            synth.writeNote(ww.df, 0, Piece.c0Freq * Math.pow(2,note / 15.0), 0, new double[]{1});
+        }
+        
+      
+        chord = new int[]{10 + 15 * 4,1 + 15 * 5,5 + 15 * 5,13+ 15 * 5};
+        for(int n = 0; n < 4; n++){
+            int note = chord[n];
+            
+            synth.writeNote(ww.df, 6, Piece.c0Freq * Math.pow(2,note / 15.0), 1, new double[]{1});
+        }
+
+        chord = new int[]{13 + 15 * 4,1 + 15 * 5,5 + 15 * 5,11+ 15 * 5};
+        for(int n = 0; n < 4; n++){
+            int note = chord[n];
+            synth.writeNote(ww.df, 12, Piece.c0Freq * Math.pow(2,note / 15.0), 0, new double[]{1});
+        }
+        chord = new int[]{6 + 15 * 4,0 + 15 * 5,3+ 15 * 5,10 + 15 * 5};
+        for(int n = 0; n < 4; n++){
+            int note = chord[n];
+            synth.writeNote(ww.df,  18, Piece.c0Freq * Math.pow(2,note / 15.0), 1, new double[]{1});
+        }
+
+
+        ww.render(1);
+    }
+
+    public static void main(String[] args) {
+        test();
     }
 }

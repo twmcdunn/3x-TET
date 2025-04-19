@@ -17,18 +17,21 @@ public class Sequencer {
     public Game myGame;
     public ArrayList<Triad> telos;
     public int maxGameLengthSoFar, minRepNotes, maxAllowedRep;
-    public Random rand;
+    private Random rand;
     public int TET;// 21;
     public ArrayList<int[][]> transformationMatrix;
     public int[][] triadDictionary;
     public int[][] modes;
     public int[][] alternateChords;
     public double[] probDistOfAltChords;
+    public static ArrayList<ChordRecord> chordRecords;
+
+
 
     Sequencer(int type) {
         switch (type) {
             case 0:
-                TET = 15;
+                TET = 15;  
                 triadDictionary = new int[][] {
                         { 0, 5, 9, 12 }, { 0, 4, 9, 12 }, { 0, 5, 8, 9 }, { 0, 5, 9, 13 }, { 0, 3, 5, 9 },
                         { 0, 4, 9, 13 }
@@ -63,6 +66,8 @@ public class Sequencer {
 
         initializeVariables();
         rand = new Random(123);
+        if(chordRecords == null)
+            chordRecords = new ArrayList<ChordRecord>();
         Game sourceGame = new Game(sourceSyntagm, this);
         myGame = sourceGame;
     }
@@ -121,9 +126,9 @@ public class Sequencer {
             telos.add(new Triad(hardCodedTelos[i][0], hardCodedTelos[i][1], this));
 
         telos = null;
-        System.out.println("Source: " + sourceSyntagm);
-        System.out.println("Telos: " + telos);
-        System.out.println("minDist = " + sourceSyntagm.getMinSyntacticDistance());
+        //System.out.println("Source: " + sourceSyntagm);
+        //System.out.println("Telos: " + telos);
+        //System.out.println("minDist = " + sourceSyntagm.getMinSyntacticDistance());
     }
 
     public static void testTraids(Sequencer s) {
@@ -139,7 +144,7 @@ public class Sequencer {
                         continue;
                     if (brd.getMinSyntacticDistance() >= mdist) {
                         mdist = brd.getMinSyntacticDistance();
-                        System.out.println(brd);
+                        //System.out.println(brd);
                     }
 
                 }
@@ -147,17 +152,18 @@ public class Sequencer {
         Board brd = new Board(s);
         brd.add(new Triad(3, 0, s));
         brd.add(new Triad(0, 6, s));
-        System.out.println(brd);
+        //System.out.println(brd);
 
     }
 
     public void playGames() {
-        for (int i = 0; i < 7; i++)
-            System.out.println();
+        for (int i = 0; i < 7; i++){
+            //System.out.println();
+        }
 
         for (int i = 0; i < 100; i++) {
             getChords();
-            System.out.println(myGame);
+            //System.out.println(myGame);
         }
     }
 
@@ -194,14 +200,58 @@ public class Sequencer {
         return completeBoards;
     }
 
+    class ChordRecord{
+        double myTime;
+        int myTet;
+        int[][] myChords;
+        public ChordRecord(double t, int tet, int[][] chords){
+            myTime = t;
+            myTet = tet;
+            myChords = chords;
+        }
+    }
+
+    public static ChordRecord getChordRecord(double time){
+        ChordRecord rec = null;
+        for(int i = 0; i < chordRecords.size(); i++){
+            if(chordRecords.get(i).myTime > time){
+                break;
+            }
+            rec = chordRecords.get(i);
+        }
+        return rec;
+    }
+    public static double[] getChordsTimeFrame(double time){
+        ChordRecord rec = null;
+        double endTime = -1;
+        for(int i = 0; i < chordRecords.size(); i++){
+            if(chordRecords.get(i).myTime > time){
+                break;
+            }
+            rec = chordRecords.get(i);
+            if(i < chordRecords.size() - 1){
+                endTime = chordRecords.get(i+1).myTime;
+            }
+            else{
+                endTime = 11 * 60 + 45;
+            }
+        }
+
+        return new double[]{rec.myTime, endTime};
+    }
+
+    public void addChordRecord(int[][] chords){
+        chordRecords.add(new ChordRecord(Piece.time, TET, chords));
+    }
+
     public int[][] getChords() {
-        if(Piece.altChordProb > Piece.rand.nextDouble()){
+        if(Piece.altChordProb > rand.nextDouble()){
             
 
             int[][] altChords = new int[myGame.getLastBoard().size()][alternateChords[0].length];
             for(int i = 0; i < altChords.length; i++){
                 double tot = 0;
-                double r = Piece.rand.nextDouble();
+                double r = rand.nextDouble();
                 for(int n = 0; n < probDistOfAltChords.length; n++){
                     tot += probDistOfAltChords[n];
                     if(tot > r){
@@ -210,6 +260,7 @@ public class Sequencer {
                     }
                 }
             }
+            addChordRecord(altChords);
             return altChords;
         }
 
@@ -243,7 +294,7 @@ public class Sequencer {
             }
         }
 
-        System.out.println("BEST DISTANCE: " + best + " BEST CHORD POP: " + bestChordPop);
+        //System.out.println("BEST DISTANCE: " + best + " BEST CHORD POP: " + bestChordPop);
 
         // build list of games filtered based on the above
         // (first by chord pop, then by syntactic distance)
@@ -257,7 +308,7 @@ public class Sequencer {
         }
 
         // pick randomly from the filtered game options
-        System.out.println("NUM OF OPTIONS: " + bestGames.size());
+        //System.out.println("NUM OF OPTIONS: " + bestGames.size());
         myGame = bestGames.get((int) (rand.nextDouble() * bestGames.size()));
 
         Board lastBoard = myGame.getLastBoard();
@@ -268,6 +319,7 @@ public class Sequencer {
             for (int n = 0; n < notes.size(); n++)
                 chords[i][n] = notes.get(n);
         }
+        addChordRecord(chords);
         return chords;
     }
 

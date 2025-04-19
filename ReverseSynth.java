@@ -1,17 +1,18 @@
 import java.util.Arrays;
 
-public class ReverseSynth implements Synth{
+public class ReverseSynth extends Synth{
        double f2;
     double[] sig;
 Envelope env;
 double vol;
     public ReverseSynth(double volume){
+        spatializer = new Spatializer(Math.PI * 2 / (20 + 20 * rand.nextDouble()), Math.PI * 2 * rand.nextDouble());
         sig = ReadSound.readSoundDoubles("3.wav");
         f2 = 626;
                 vol = volume;
     }
     
-    public void writeNote(float[][] frames, double time, double freq, double startVol, double[] pan) {
+    public void childWriteNote(float[][] frames, double time, double freq, double startVol, double[] pan) {
 
 
         double freqRatio = freq / f2;//Math.pow(2, (exactMidi - midiNum) / 12.0);

@@ -1,10 +1,11 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Vibs implements Synth {
+public class Vibs extends Synth {
     ArrayList<double[]> samples, wetSigs;
 
     public Vibs() { // oct 4 and 5
+        spatializer = new Spatializer(Math.PI * 2 / (20 + 20 * rand.nextDouble()), Math.PI * 2 * rand.nextDouble());
         samples = new ArrayList<double[]>();
         for (int i = 53; i <= 89; i++) {
             samples.add(Arrays.copyOf(ReadSound.readSoundDoubles("vibs/vib" + i + ".wav"), WaveWriter.SAMPLE_RATE * 3));
@@ -51,7 +52,7 @@ public class Vibs implements Synth {
         
     }
 
-    public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan) {
+    public void childWriteNote(float[][] frames, double time, double freq, double vol, double[] pan) {
 
         if(false)
             return;
@@ -68,7 +69,7 @@ public class Vibs implements Synth {
         double[] sig = samples.get(midiNum);
         double[] wet = wetSigs.get(midiNum);
         double globalReverb = Piece.reverbEnv.getValue(time);
-        double mix = (1-globalReverb) + globalReverb * vol;
+        double mix = (1-globalReverb) + globalReverb * vol / 0.8343988103956074;
         for(int i = 0; i < sig.length; i++)
             sig[i] = mix * sig[i] + (1-mix)*wet[i];
 

@@ -1,5 +1,9 @@
-public class Additive implements Synth{
-    public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan){
+public class Additive extends Synth{
+    public Additive(){
+        spatializer = new Spatializer(Math.PI * 2 / (20 + 20 * rand.nextDouble()), Math.PI * 2 * rand.nextDouble());
+    }
+
+    public void childWriteNote(float[][] frames, double time, double freq, double vol, double[] pan){
         double dur = 30;
         double[] freqs = {86,170,209,263,350,522,716,833,994,1183,1421,1668,1932,2284,4180,6083};
         for(int i = 0; i < freqs.length; i++){

@@ -5,7 +5,7 @@ public class MultiConvolutionSynth extends SustainedSynth {
         super(sampleType, volume);
     }
 
-    public void writeNote(float[][] frames, double time, double freq, double startVol, double[] pan) {
+    public void childWriteNote(float[][] frames, double time, double freq, double startVol, double[] pan) {
 
         //setSigAndF2(2);
         double[] processed = susSound(sig, f2, freq, startVol);

@@ -6,11 +6,11 @@ import java.util.ArrayList;
  * @author (your name)
  * @version (a version number or a date)
  */
-public class Resonance implements Synth
+public class Resonance extends Synth
 {
 
     public Resonance(){
-
+        spatializer = new Spatializer(Math.PI * 2 / (20 + 20 * rand.nextDouble()), Math.PI * 2 * rand.nextDouble());
     }
 
     
@@ -178,7 +178,7 @@ public class Resonance implements Synth
         ww.render();
     }
 
-    public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan){
+    public void childWriteNote(float[][] frames, double time, double freq, double vol, double[] pan){
         
         //freq /= 4.0;
         int tet = 15;

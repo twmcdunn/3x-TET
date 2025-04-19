@@ -6,7 +6,7 @@ import java.util.Arrays;
  * @author (your name)
  * @version (a version number or a date)
  */
-public class SampleSynth implements Synth {
+public class SampleSynth extends Synth {
     public double[] sig;
     public double f2;
     public int type;
@@ -20,9 +20,11 @@ public class SampleSynth implements Synth {
 
      public SampleSynth(){//for children
         cathedral = ReadSound.readSoundDoubles("cathedral.wav");
-     }
+        spatializer = new Spatializer(Math.PI * 2 / (20 + 20 * rand.nextDouble()), Math.PI * 2 * rand.nextDouble()); 
+    }
 
     public SampleSynth(int sampleNumber) {
+        spatializer = new Spatializer(Math.PI * 2 / (20 + 20 * rand.nextDouble()), Math.PI * 2 * rand.nextDouble());
         cathedral = ReadSound.readSoundDoubles("cathedral.wav");
         type = sampleNumber;
         setSigAndF2(sampleNumber);
@@ -127,10 +129,14 @@ public class SampleSynth implements Synth {
                 f2 = 280;
                 sig = ReadSound.readSoundDoubles("19.wav");// drone metallic swell A3
                 break;
+            case 20:
+                f2 = 1;
+                sig = ReadSound.readSoundDoubles("27.wav");// dense sound effect
+                break;
         }
     }
 
-    public void writeNote(float[][] frames, double time, double freq, double vol, double[] pan) {
+    public void childWriteNote(float[][] frames, double time, double freq, double vol, double[] pan) {
         // if(type != 17)
         // return;
 
@@ -138,8 +144,13 @@ public class SampleSynth implements Synth {
             System.out.println("LF");
         if (false)
             return;
-        double globalReverb = Piece.reverbEnv.getValue(time);
-        double mix = (1 - globalReverb) + globalReverb * vol;// max reverb is 50% mix
+
+            double globalReverb = 0.5;
+            try{
+         globalReverb = Piece.reverbEnv.getValue(time);
+    }
+    catch(Exception e){}
+        double mix = (1 - globalReverb) + globalReverb * vol / 0.8343988103956074;// max reverb is 50% mix
         double[] reverb = new double[sig.length];
         for (int i = 0; i < reverb.length; i++) {
             reverb[i] = wetSig[i] * (1 - mix) + sig[i] * mix;
@@ -171,25 +182,7 @@ public class SampleSynth implements Synth {
         }
     }
 
-    public double[] addReverb(double[] processed){
-        processed = Arrays.copyOf(processed, processed.length + cathedral.length);
-        double[] cathedralCopy = Arrays.copyOf(cathedral, processed.length);
-        double[] wetSig = FFT2.convAsImaginaryProduct(processed, cathedralCopy);
-        wetSig = Arrays.copyOf(wetSig, processed.length);
-        double sMax = 0;
-        double wMax = 0;
-        for(int i = 0; i < wetSig.length; i++){
-            sMax = Math.max(sMax, Math.abs(processed[i]));
-            wMax = Math.max(wMax, Math.abs(wetSig[i]));
-        }
-        
-        for(int i = 0; i < wetSig.length; i++){
-            processed[i] /= sMax;
-            wetSig[i] /= wMax;
-            processed[i] = mix * processed[i] + (1-mix) * wetSig[i];
-        }
-        return processed;
-    }
+
 
 
     public static void testSample() {
@@ -211,25 +204,7 @@ public class SampleSynth implements Synth {
         ww.render(1);
     }
 
-    public double[] pitchShift(double[] sig, double f2, double freq){
-        double freqRatio = freq / f2;// Math.pow(2, (exactMidi - midiNum) / 12.0);
-
-        double[] processed = new double[(int) (sig.length / freqRatio)];
-
-        for (int i = 0; i < (int) (sig.length / freqRatio); i++) {
-            double exInd = i * freqRatio;
-            int index = (int) exInd;
-            double fract = exInd - index;
-            double frame1 = sig[index];
-            double frame2 = frame1;
-            if (index + 1 < sig.length)
-                frame2 = sig[index + 1];
-            double frame = frame1 * (1 - fract) + frame2 * fract;
-
-            processed[i] = frame;
-        }
-        return processed;
-    }
+   
 
     public static void testFilteredChime() {
         Synth synth = new SampleSynth(0);

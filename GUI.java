@@ -34,11 +34,12 @@ public class GUI
 
     public Timer clock;
     public ArrayList<Envelope> envs;
-    public Envelope selectedEnv;
+    public static Envelope selectedEnv;
     public int lastX,lastX1;
     public File file;
     public double xView;
     public boolean shift;
+    public static JMenu envMenu;
     boolean mouseLifted = true;
     int clickX = 0;
     int clickY = 0;
@@ -68,6 +69,8 @@ public class GUI
         JMenuBar bar =  new JMenuBar();
         JMenu fileMenu = new JMenu("File");
 
+        envMenu = new JMenu("Envelope");
+
         JMenuItem newItem = new JMenuItem("New");
         newItem.addActionListener(new ActionListener(){
                 @Override
@@ -75,6 +78,15 @@ public class GUI
                     Envelope env = new Envelope();
                     envs.add(env);
                     selectedEnv = env;
+                    JMenuItem selectItem = new JMenuItem("Select " + (envs.size()));
+                    final int index = envs.size() - 1;
+                    selectItem.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e){
+                            selectedEnv = envs.get(index);
+                        }
+                    });
+                    envMenu.add(selectItem);
                 }
             });
 
@@ -130,7 +142,7 @@ public class GUI
         fileMenu.add(saveItem);
         bar.add(fileMenu);
 
-        JMenu envMenu = new JMenu("Envelope");
+        
 
         JMenuItem sinusoid = new JMenuItem("Sinusoid");
         sinusoid.addActionListener(new ActionListener() {
@@ -200,9 +212,15 @@ public class GUI
                         int offset = ((int)Math.rint(xView)) % (int)Math.rint(100 * scale);
                         int sec = ((int)Math.rint(xView)) / (int)Math.rint(100 * scale);
                         g.setColor(Color.BLACK);
-                        for(int i = (int)Math.rint(100 * scale) - offset; i < width; i+= (int)Math.rint(100 * scale)){
-                            g.drawString((sec+1) + "''", i,10);
-                            sec++;
+                        int secFreq = 1;
+                        if(scale <= 0.25)
+                            secFreq =  (int)Math.pow(2,(-Math.log(scale) / Math.log(2)));
+
+                        for(int i = (int)Math.rint(100 * scale) - offset; i < width; i+= (int)Math.rint(100 * scale) * secFreq){
+                            int min = (sec+1) / 60;
+                            int dispSec = (sec+1) - (60 * min);
+                            g.drawString((min) + "'" + dispSec + "''", i,10);
+                            sec += secFreq;
                         }
                     }
                 }
@@ -325,6 +343,12 @@ public class GUI
                 public void keyReleased(KeyEvent e){
                     try{
                         switch(e.getKeyCode()){
+                            case KeyEvent.VK_LEFT:
+                            xView -= 1600;
+                            break;
+                            case KeyEvent.VK_RIGHT:
+                            xView += 1600;
+                            break;
                             case KeyEvent.VK_1:
                             selectedEnv = envs.get(0);
                             break;
@@ -393,6 +417,17 @@ public class GUI
                                         env.values[i] = (500 - coord[1]) / 500.0;
                                     }
                                     envs.add(env);
+                                    if(envMenu != null){ // only applies when envs are not opened programmatically
+                                        JMenuItem selectItem = new JMenuItem("Select " + (envs.size()));
+                                        final int index = envs.size() - 1;
+                                        selectItem.addActionListener(new ActionListener() {
+                                            @Override
+                                            public void actionPerformed(ActionEvent e){
+                                                selectedEnv = envs.get(index);
+                                            }
+                                        });
+                                        envMenu.add(selectItem);
+                                    }
                                 }
                                 env = new Envelope();
                                 env.file = file;
